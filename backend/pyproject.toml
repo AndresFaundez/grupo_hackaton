@@ -1,0 +1,38 @@
+[project]
+name = "clusterchat"
+version = "0.1.0"
+description = "Sube tu base de clientes, segmenta con clustering y conversa con los clusters usando IA."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "python-multipart>=0.0.9",
+    "pydantic>=2.8",
+    "pydantic-settings>=2.4",
+    "pandas>=2.2",
+    "pyarrow>=17",
+    "openpyxl>=3.1",
+    "scikit-learn>=1.5",
+    "duckdb>=1.1",
+    "sqlglot>=25",
+    "google-genai>=1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "httpx>=0.27",
+]
+
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["live: llama a Gemini real (requiere credenciales de GCP)"]
+addopts = "-m 'not live'"
