@@ -46,7 +46,7 @@ export default function Clusters() {
                 <span className="stat-value">{cluster.frequency}</span>
               </div>
             </div>
-            <Link className="link-button strong" to={`/explorar?segmento=${cluster.id}`}>
+            <Link className="link-button strong" to={`/recorrido/explorar?segmento=${cluster.id}`}>
               Explorar segmento →
             </Link>
           </article>

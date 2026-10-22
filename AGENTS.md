@@ -47,14 +47,21 @@ propio directorio; nadie trabaja fuera de su directorio asignado:
 ### Frontend (rama `frontend`)
 
 - Stack: React 18 + Vite + react-router-dom.
-- Vistas actuales (recorrido de 5 pasos, alineado al prototipo de Lovable):
-  `Datos` (subir CSV o usar datos de ejemplo), `Procesamiento` (progreso
-  simulado), `Clusters` (dispersión gasto vs frecuencia, nombres
-  propuestos por IA y editables), `Exploración` (ficha del segmento con
-  rasgos, cliente representativo y chat integrado) y `Campaña`
-  (selector de segmento y ventana conversacional con la IA para definir
-  objetivo, canal, mensaje y lanzar). Chat global "Preguntar a la IA"
-  disponible en un cajón lateral desde cualquier paso.
+- Pantallas principales del frontend:
+  1. **Recorrido** (`/recorrido/*`): flujo de 5 pasos — `Datos` (subir CSV
+     o usar datos de ejemplo), `Procesamiento` (progreso simulado con
+     animación), `Clusters` (dispersión gasto vs frecuencia, nombres IA
+     editables), `Exploración` (ficha del segmento con rasgos, cliente
+     representativo y chat integrado) y `Campaña` (selector de segmento y
+     ventana conversacional con la IA para definir objetivo, canal,
+     mensaje y lanzar).
+  2. **Base de datos** (`/base-de-datos`): explorador interactivo de
+     clientes con la segmentación integrada (búsqueda, filtro por
+     cluster, orden y ficha de cliente con su cluster).
+  3. **Chat IA** (`/chat`): ventana de conversación con la IA sobre los
+     clusters y la base filtrada.
+  Chat global "Preguntar a la IA" disponible en un cajón lateral desde
+  cualquier pantalla.
 - Datos de demostración en `frontend/src/data/` simulan las respuestas
   del backend hasta que exista el contrato de API.
 - La capa de API (`frontend/src/api/`) no se construye hasta tener el

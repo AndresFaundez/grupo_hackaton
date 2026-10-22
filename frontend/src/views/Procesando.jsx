@@ -51,7 +51,7 @@ export default function Procesando() {
           />
         </div>
         <div className="actions center">
-          <button className="primary" disabled={!done} onClick={() => navigate('/clusters')}>
+          <button className="primary" disabled={!done} onClick={() => navigate('/recorrido/clusters')}>
             {done ? 'Ver mis clusters' : 'Procesando…'}
           </button>
         </div>
