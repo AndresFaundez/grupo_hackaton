@@ -1,13 +1,15 @@
+import ChatPanel from '../components/ChatPanel.jsx'
+
 export default function Chat() {
   return (
-    <section>
+    <section className="chat-section">
       <h2>Chat IA</h2>
-      <p className="placeholder">
-        Chat LLM sobre los clusters: responde con la información de la
-        segmentación y, si es necesario, consulta la base de datos
-        filtrada por el cluster del que se habla. Para pedir estrategias
-        de marketing y más información.
+      <p className="lead">
+        Conversa sobre los clusters para pedir estrategias y más información.
       </p>
+      <div className="card chat-wrap">
+        <ChatPanel />
+      </div>
     </section>
   )
 }

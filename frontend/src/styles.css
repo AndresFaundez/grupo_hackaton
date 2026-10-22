@@ -15,6 +15,8 @@ body {
   flex-direction: column;
 }
 
+/* ---------- Layout ---------- */
+
 .header {
   background: #101828;
   color: #fff;
@@ -59,10 +61,406 @@ body {
   margin: 0 auto;
 }
 
+h2 {
+  margin: 0 0 8px;
+  font-size: 1.4rem;
+}
+
+.lead {
+  margin: 0 0 20px;
+  color: #475467;
+}
+
 .placeholder {
   background: #fff;
   border: 1px dashed #98a2b3;
   border-radius: 12px;
   padding: 24px;
   color: #475467;
+}
+
+.muted {
+  color: #667085;
+}
+
+/* ---------- Cards y comunes ---------- */
+
+.card {
+  background: #fff;
+  border: 1px solid #e4e7ec;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+}
+
+.primary {
+  background: #3538cd;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary:hover:not(:disabled) {
+  background: #2b2eaf;
+}
+
+.primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.actions {
+  margin-top: 16px;
+}
+
+/* ---------- Upload ---------- */
+
+.dropzone {
+  border: 2px dashed #98a2b3;
+  text-align: center;
+  padding: 40px 24px;
+}
+
+.dropzone-icon {
+  font-size: 2rem;
+  color: #3538cd;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.dropzone-label {
+  cursor: pointer;
+  color: #475467;
+}
+
+.dropzone-label input {
+  display: none;
+}
+
+.dropzone-label:hover {
+  color: #101828;
+}
+
+/* ---------- Dashboard ---------- */
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.kpi-label {
+  color: #667085;
+  font-size: 0.9rem;
+}
+
+.kpi-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.cluster-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.cluster-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cluster-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cluster-head h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.cluster-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  background: #f2f4f7;
+  color: #3538cd;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  padding: 4px 10px;
+  font-weight: 600;
+}
+
+.cluster-desc {
+  margin: 0;
+  color: #475467;
+  font-size: 0.92rem;
+}
+
+.cluster-stats {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.cluster-stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stat-label {
+  color: #667085;
+  font-size: 0.8rem;
+}
+
+.stat-value {
+  font-weight: 700;
+}
+
+.bar {
+  background: #f2f4f7;
+  border-radius: 999px;
+  height: 8px;
+  overflow: hidden;
+}
+
+.bar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+}
+
+/* ---------- Clusters (workspace según boceto) ---------- */
+
+.cluster-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.cluster-pick {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  padding: 14px;
+}
+
+.cluster-pick:hover,
+.cluster-pick.selected {
+  border-color: #3538cd;
+  box-shadow: 0 0 0 2px rgba(53, 56, 205, 0.15);
+}
+
+.cluster-pick-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.chat-dock {
+  background: #fff;
+  border: 1px solid #e4e7ec;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  min-height: 420px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+}
+
+.chat-dock-title {
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.chat-dock .chat {
+  flex: 1;
+  padding: 0;
+  border: none;
+  height: auto;
+  min-height: 0;
+}
+
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.detail-item h4 {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #667085;
+}
+
+.detail-item p {
+  margin: 0 0 4px;
+}
+
+.chip-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  background: #f2f4f7;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  padding: 4px 12px;
+}
+
+.strategy-list {
+  margin: 0;
+  padding-left: 18px;
+  color: #344054;
+}
+
+.strategy-list li {
+  margin-bottom: 6px;
+}
+
+/* ---------- Chat ---------- */
+
+.chat-section .lead {
+  margin-bottom: 16px;
+}
+
+.chat-wrap {
+  padding: 16px;
+}
+
+.chat {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  height: 60vh;
+  min-height: 420px;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 4px;
+}
+
+.bubble {
+  max-width: 78%;
+  border-radius: 14px;
+  padding: 10px 14px;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.bubble.assistant {
+  background: #f2f4f7;
+  color: #1f2430;
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+}
+
+.bubble.user {
+  background: #3538cd;
+  color: #fff;
+  align-self: flex-end;
+  border-bottom-right-radius: 4px;
+}
+
+.chat-suggestions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chip-button {
+  cursor: pointer;
+  border: 1px solid #e4e7ec;
+  font: inherit;
+  color: #344054;
+}
+
+.chip-button:hover {
+  border-color: #3538cd;
+  color: #3538cd;
+}
+
+.chat-input {
+  display: flex;
+  gap: 8px;
+}
+
+.chat-input input {
+  flex: 1;
+  border: 1px solid #e4e7ec;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font: inherit;
+}
+
+.chat-input input:focus {
+  outline: 2px solid rgba(53, 56, 205, 0.35);
+  border-color: #3538cd;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 900px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .bubble {
+    max-width: 90%;
+  }
 }
