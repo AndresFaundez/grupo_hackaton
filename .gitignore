@@ -7,3 +7,7 @@ __pycache__/
 workspace/
 data/samples/*
 !data/samples/.gitkeep
+# Credenciales: nunca al repo
+secrets/
+*service-account*.json
+*-sa.json

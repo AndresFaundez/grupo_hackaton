@@ -23,9 +23,10 @@ Sube tu base de clientes, segméntala con clustering y **pregúntale directament
 git clone https://github.com/AndresFaundez/grupo_hackaton.git
 cd grupo_hackaton
 python3 -m venv .venv && .venv/bin/pip install -e '.[dev]'   # o: uv sync --extra dev
-cp .env.example .env    # completar GOOGLE_CLOUD_PROJECT y GEMINI_MODEL
-gcloud auth application-default login
+cp .env.example .env
 ```
+
+Credenciales de GCP: pide el JSON de la service account `hackaton-sa` al equipo (por un canal privado, no por el repo ni el chat del grupo) y guárdalo en `~/.config/grupo_hackaton/gcp-sa.json` con `chmod 600`. La ruta ya está en `.env.example`. Alternativa sin JSON: `gcloud auth application-default login` con una cuenta que tenga acceso al proyecto, y borrar la línea `GOOGLE_APPLICATION_CREDENTIALS`.
 
 Sin LLM configurado todo funciona igual con fallbacks heurísticos (schema y nombres "Cluster N"), excepto el chat, que responde 503.
 
@@ -110,4 +111,4 @@ scripts/             make_synthetic, fetch_samples, demo
 
 ### Modelo Gemini
 
-El modelo se define con `GEMINI_MODEL` en `.env`. Hay que elegir el Flash vigente en la [lista de versiones de Vertex AI](https://docs.cloud.google.com/vertex-ai/generative-ai/docs/learn/model-versions) y validarlo con `pytest -m live`.
+`GEMINI_MODEL=gemini-3-flash-preview` con `GEMINI_THINKING_LEVEL=low`. En el proyecto `estudi-ai-1c38` también está disponible `gemini-2.5-flash` (en ese caso hay que quitar `GEMINI_THINKING_LEVEL`). Latencias medidas con el dataset sintético: detección de schema ~3 s, nombres de clusters ~8 s, cada pregunta del chat 3–6 s y el modo persona ~2 s.

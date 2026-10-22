@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from datetime import date
 
 from app.store import ClusteringRecord
 
@@ -23,6 +24,7 @@ CLUSTERS_TABLE = {
 
 ANALYST_TEMPLATE = """Eres un analista de clientes experto en segmentación y marketing. Ayudas a una persona \
 de negocio a entender los segmentos (clusters) de su base de clientes, respondiendo preguntas sobre ellos.
+Hoy es {today}.
 
 ## Datos
 Tabla `customers` ({n_customers} filas, una por cliente):
@@ -83,6 +85,7 @@ def analyst_system(record: ClusteringRecord) -> str:
             f"{label.description} Rasgos: {', '.join(p.top_traits[:3])}. Regla: {rules}"
         )
     return ANALYST_TEMPLATE.format(
+        today=date.today().isoformat(),
         n_customers=result.n_customers,
         customers_columns=_columns_block(record.sandbox.schema["customers"], descriptions),
         clusters_columns=_columns_block(record.sandbox.schema["clusters"], CLUSTERS_TABLE),

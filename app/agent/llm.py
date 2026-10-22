@@ -74,12 +74,29 @@ class GeminiLLM:
         from google import genai
 
         if settings.google_genai_use_vertexai:
+            credentials = None
+            if settings.google_application_credentials:
+                from google.oauth2 import service_account
+
+                credentials = service_account.Credentials.from_service_account_file(
+                    str(settings.google_application_credentials.expanduser()),
+                    scopes=["https://www.googleapis.com/auth/cloud-platform"],
+                )
             self._client = genai.Client(
-                vertexai=True, project=settings.google_cloud_project, location=settings.google_cloud_location
+                vertexai=True,
+                project=settings.google_cloud_project,
+                location=settings.google_cloud_location,
+                credentials=credentials,
             )
         else:
             self._client = genai.Client(api_key=settings.gemini_api_key)
         self.model = settings.gemini_model
+        self.thinking_level = settings.gemini_thinking_level
+
+    def _thinking(self):
+        from google.genai import types
+
+        return types.ThinkingConfig(thinking_level=self.thinking_level) if self.thinking_level else None
 
     def generate_json(self, prompt: str, schema: type[T], system: str | None = None) -> T:
         from google.genai import types
@@ -89,6 +106,7 @@ class GeminiLLM:
             response_mime_type="application/json",
             response_json_schema=schema.model_json_schema(),
             temperature=0.2,
+            thinking_config=self._thinking(),
         )
         try:
             response = self._client.models.generate_content(model=self.model, contents=prompt, config=config)
@@ -115,6 +133,7 @@ class GeminiLLM:
             else None,
             automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
             temperature=0.3,
+            thinking_config=self._thinking(),
         )
         contents = [self._to_content(m) for m in messages]
         try:

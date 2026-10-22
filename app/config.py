@@ -11,8 +11,12 @@ class Settings(BaseSettings):
     google_genai_use_vertexai: bool = True
     google_cloud_project: str | None = None
     google_cloud_location: str = "global"
+    # JSON de service account. Si falta, se usan las credenciales por defecto (gcloud auth application-default login).
+    google_application_credentials: Path | None = None
     gemini_api_key: str | None = None
-    gemini_model: str = "gemini-2.5-flash"
+    gemini_model: str = "gemini-3-flash-preview"
+    # Solo modelos Gemini 3 (minimal, low, medium, high). "low" reduce la latencia a la mitad sin perder calidad.
+    gemini_thinking_level: str | None = None
 
     workspace_dir: Path = Path("workspace")
 
