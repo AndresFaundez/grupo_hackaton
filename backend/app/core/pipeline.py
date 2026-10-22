@@ -8,11 +8,11 @@ from app.agent.llm import LLM
 from app.agent.sandbox import Sandbox
 from app.config import Settings
 from app.core.clustering import fit_clusters
-from app.core.embedding import embed_2d
+from app.core.embedding import build_scatter
 from app.core.features import build_features, transform
-from app.core.ingest import preview_rows, profile_columns, read_table
+from app.core.ingest import NAME_TOKENS, preview_rows, profile_columns, read_table, tokens
 from app.core.naming import label_clusters
-from app.core.profiling import profile_clusters
+from app.core.profiling import profile_clusters, representatives
 from app.core.rules import fit_rules
 from app.core.schema import detect_schema
 from app.models import ClusteringRequest, ClusteringResult, ClusterSummary, DatasetInfo
@@ -57,7 +57,10 @@ def run_clustering(
 
     transformed = transform(fs.customers, feature_cols)
     fit = fit_clusters(transformed.X, k=req.k, k_min=settings.k_min, k_max=settings.k_max)
-    profiles = profile_clusters(fs.customers, transformed.T, fit.labels, feature_cols, fs.attribute_cols, fs.monetary_col)
+    profiles = profile_clusters(
+        fs.customers, transformed.T, fit.labels, feature_cols, fs.attribute_cols, fs.monetary_col,
+        period_days=fs.period_days, category_spend=fs.category_spend,
+    )
     rule_set = fit_rules(fs.customers[feature_cols], fit.labels)
     descriptions = {c: fs.descriptions[c] for c in feature_cols + fs.attribute_cols if c in fs.descriptions}
     labels, labels_source = label_clusters(profiles, rule_set.rules, descriptions, llm)
@@ -82,12 +85,17 @@ def run_clustering(
     )
     sandbox = Sandbox(safe.reset_index(drop=True), clusters_table, max_rows=settings.max_query_rows)
 
+    name_column = next((c for c in schema.pii_columns if set(tokens(c)) & NAME_TOKENS), None)
+    reps = representatives(transformed.X, fit.labels, customers, pii, name_column, sandbox_columns)
+
     all_descriptions = {c: d for c, d in fs.descriptions.items() if "=" not in c}
     result = ClusteringResult(
         clustering_id=new_id("cl"),
         dataset_id=dataset.info.dataset_id,
+        filename=dataset.info.filename,
         data_shape=schema.data_shape,
         n_customers=len(customers),
+        total_revenue=round(float(fs.customers[fs.monetary_col].sum()), 2) if fs.monetary_col else None,
         k=fit.k,
         silhouette=round(fit.silhouette, 4),
         k_scores={k: round(v, 4) for k, v in fit.k_scores.items()},
@@ -96,10 +104,12 @@ def run_clustering(
         rules_fidelity=rule_set.fidelity,
         labels_source=labels_source,
         clusters=[
-            ClusterSummary(profile=p, rules=rule_set.rules.get(p.cluster_id, []), label=label)
+            ClusterSummary(
+                profile=p, rules=rule_set.rules.get(p.cluster_id, []), label=label, representative=reps.get(p.cluster_id)
+            )
             for p, label in zip(profiles, labels)
         ],
-        embedding=embed_2d(transformed.X, fit.labels),
+        scatter=build_scatter(fs.customers, transformed.X, fit.labels, fs.period_days),
     )
     record = ClusteringRecord(result=result, customers=customers, pii=pii, rule_set=rule_set, sandbox=sandbox)
     store.add_clustering(record)

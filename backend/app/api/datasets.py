@@ -4,6 +4,7 @@ from app.core.pipeline import ingest_dataset, run_clustering
 from app.core.schema import validate_schema
 from app.models import ClusteringRequest, ClusteringResult, DatasetInfo, SchemaMapping
 from app.services import Services, get_services
+from app.synthetic import generate
 
 router = APIRouter(prefix="/datasets", tags=["datasets"])
 
@@ -21,6 +22,14 @@ def upload_dataset(file: UploadFile, services: Services = Depends(get_services))
         record = ingest_dataset(content, file.filename or "upload.csv", services.llm, services.store)
     except ValueError as e:
         raise HTTPException(422, str(e)) from e
+    return record.info
+
+
+@router.post("/sample", response_model=DatasetInfo)
+def upload_sample(services: Services = Depends(get_services)) -> DatasetInfo:
+    """Dataset sintético de una tienda (2.000 clientes, 4 segmentos plantados) para "Usar datos de ejemplo"."""
+    tx, _ = generate(n_customers=2000, seed=7)
+    record = ingest_dataset(tx.to_csv(index=False).encode(), "ejemplo_tienda_2025.csv", services.llm, services.store)
     return record.info
 
 

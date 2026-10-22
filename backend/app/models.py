@@ -76,11 +76,28 @@ class FeatureStat(BaseModel):
     z: float = Field(description="Desviación de la media del cluster vs. la global, en desviaciones estándar")
 
 
+class ClusterMetrics(BaseModel):
+    """Métricas de negocio listas para mostrar (None si los datos no permiten calcularlas)."""
+
+    avg_spend: float | None = Field(None, description="Gasto total promedio por cliente en el periodo")
+    avg_ticket: float | None = Field(None, description="Gasto promedio por compra")
+    purchases_per_year: float | None = Field(None, description="Compras promedio por cliente al año")
+    days_since_last_purchase: float | None = Field(None, description="Días promedio desde la última compra")
+    revenue: float | None = Field(None, description="Ventas totales del cluster")
+
+
+class ProductShare(BaseModel):
+    name: str
+    share: float = Field(description="Fracción del gasto del cluster en esta categoría")
+
+
 class ClusterProfile(BaseModel):
     cluster_id: int
     size: int
     share: float
     revenue_share: float | None = None
+    metrics: ClusterMetrics = Field(default_factory=ClusterMetrics)
+    top_products: list[ProductShare] = Field(default_factory=list)
     features: list[FeatureStat]
     top_traits: list[str]
     categorical: dict[str, dict[str, float]] = Field(
@@ -102,13 +119,22 @@ class ClusterRule(BaseModel):
     support: int
 
 
+Objective = Literal["recompra", "fidelizar", "reactivar", "ticket"]
+Channel = Literal["email", "whatsapp", "sms"]
+
+
 class ClusterLabel(BaseModel):
     cluster_id: int
     name: str = Field(description="Nombre corto y memorable del segmento, en español")
     description: str = Field(description="1-2 frases explicando qué caracteriza al segmento")
     persona: str = Field(description="Descripción de un cliente típico del segmento, en tercera persona")
+    tags: list[str] = Field(description="3 etiquetas cortas de 1-3 palabras, ej: Frecuencia alta, Ticket medio")
     key_traits: list[str] = Field(description="3-5 rasgos distintivos con cifras")
     value_level: Literal["alto", "medio", "bajo"]
+    suggested_objective: Objective = Field(
+        description="Objetivo de marketing más indicado: recompra, fidelizar, reactivar o ticket (aumentar ticket)"
+    )
+    strategies: list[str] = Field(description="3 estrategias de marketing concretas para este segmento")
     suggested_questions: list[str] = Field(description="3 preguntas que un analista de negocio haría sobre este segmento")
 
 
@@ -116,10 +142,20 @@ class ClusterLabelsLLM(BaseModel):
     clusters: list[ClusterLabel]
 
 
+class RepresentativeCustomer(BaseModel):
+    """Cliente más cercano al centro del cluster. Contiene PII: es solo para la UI, nunca para el LLM."""
+
+    customer_ref: int
+    customer_id: str
+    name: str | None = None
+    features: dict[str, float | str]
+
+
 class ClusterSummary(BaseModel):
     profile: ClusterProfile
     rules: list[ClusterRule]
     label: ClusterLabel
+    representative: RepresentativeCustomer | None = None
 
 
 class Point2D(BaseModel):
@@ -127,6 +163,12 @@ class Point2D(BaseModel):
     x: float
     y: float
     cluster_id: int
+
+
+class ScatterData(BaseModel):
+    x_label: str
+    y_label: str
+    points: list[Point2D]
 
 
 class ClusteringRequest(BaseModel):
@@ -137,8 +179,10 @@ class ClusteringRequest(BaseModel):
 class ClusteringResult(BaseModel):
     clustering_id: str
     dataset_id: str
+    filename: str
     data_shape: DataShape
     n_customers: int
+    total_revenue: float | None = None
     k: int
     silhouette: float
     k_scores: dict[int, float]
@@ -147,10 +191,37 @@ class ClusteringResult(BaseModel):
     rules_fidelity: float
     labels_source: Literal["llm", "fallback"]
     clusters: list[ClusterSummary]
-    embedding: list[Point2D]
+    scatter: ScatterData
 
     def cluster(self, cluster_id: int) -> ClusterSummary | None:
         return next((c for c in self.clusters if c.profile.cluster_id == cluster_id), None)
+
+
+class ClusterRename(BaseModel):
+    name: str = Field(min_length=1, max_length=60)
+
+
+# --- Campañas -----------------------------------------------------------------
+
+
+class CampaignDraftRequest(BaseModel):
+    objective: Objective
+    channel: Channel
+    instructions: str | None = Field(None, description="Indicaciones libres del usuario para ajustar el mensaje")
+    previous_message: str | None = Field(None, description="Borrador anterior, para generar una versión distinta")
+
+
+class CampaignDraftLLM(BaseModel):
+    subject: str | None = Field(None, description="Asunto, solo para email")
+    message: str = Field(description="Mensaje listo para enviar; usa [Nombre] donde va el nombre del cliente")
+    rationale: str = Field(description="1-2 frases: por qué este mensaje funciona para el segmento, con datos")
+
+
+class CampaignDraft(CampaignDraftLLM):
+    cluster_id: int
+    objective: Objective
+    channel: Channel
+    audience_size: int
 
 
 # --- Chat ---------------------------------------------------------------------

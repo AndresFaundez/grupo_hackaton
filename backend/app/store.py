@@ -84,6 +84,9 @@ class Store:
     def add_clustering(self, record: ClusteringRecord) -> None:
         with self._lock:
             self.clusterings[record.result.clustering_id] = record
+        self.save_clustering(record)
+
+    def save_clustering(self, record: ClusteringRecord) -> None:
         folder = self._dir(record.result.dataset_id) / record.result.clustering_id
         self._write_json(folder / "result.json", record.result.model_dump(mode="json"))
 

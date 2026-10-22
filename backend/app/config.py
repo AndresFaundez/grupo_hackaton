@@ -20,6 +20,9 @@ class Settings(BaseSettings):
 
     workspace_dir: Path = Path("workspace")
 
+    # Orígenes del frontend (Vite dev server por defecto). En .env: CORS_ORIGINS='["http://localhost:5173"]'
+    cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
+
     # Clustering: k se elige por silhouette dentro de este rango.
     # Mínimo 3 porque 2 segmentos rara vez sirven para marketing.
     k_min: int = 3

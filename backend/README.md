@@ -55,11 +55,19 @@ Muestra el schema detectado y los clusters, y abre un chat (`/persona <id>`, `/a
 | POST | `/datasets` | Sube un archivo (multipart `file`) → perfil de columnas + schema propuesto |
 | GET | `/datasets/{id}` | Info del dataset |
 | PUT | `/datasets/{id}/schema` | Confirma o corrige el schema |
-| POST | `/datasets/{id}/clusterings` | `{k?, features?}` → clusters con perfiles, reglas, nombres y coordenadas 2D |
+| POST | `/datasets/sample` | Carga el dataset sintético de ejemplo (botón "Usar datos de ejemplo") |
+| POST | `/datasets/{id}/clusterings` | `{k?, features?}` → clusters con perfiles, métricas, reglas, nombres, estrategias, cliente representativo y scatter |
 | GET | `/clusterings/{id}` | Resultado del clustering |
 | GET | `/clusterings/{id}/clusters/{cid}` | Un cluster |
+| PATCH | `/clusterings/{id}/clusters/{cid}` | `{name}` → renombra el cluster (el chat usa el nombre nuevo) |
+| GET | `/clusterings/{id}/clusters/{cid}/customers?format=json\|csv` | Audiencia completa del cluster, con datos de contacto |
+| POST | `/clusterings/{id}/clusters/{cid}/campaign-draft` | `{objective, channel, instructions?, previous_message?}` → borrador de mensaje |
 | POST | `/clusterings/{id}/chat` | `{message, session_id?, cluster_ids?, mode: analyst\|persona, persona_cluster_id?}` |
 | GET | `/results/{handle}?format=json\|csv` | Lista de clientes generada desde el chat |
+
+Por cluster (`clusters[i]`) llegan `profile` (tamaño, `metrics` con gasto promedio, compras al año, ticket, días desde la última compra y ventas; `top_products`; estadísticas por feature), `label` (nombre, descripción, persona, `tags`, `key_traits`, `suggested_objective`, `strategies`, preguntas sugeridas), `rules` y `representative` (cliente más cercano al centro del cluster; contiene PII y nunca se envía al LLM). El scatter usa compras al año vs gasto total para datos transaccionales y PCA para tablas de clientes.
+
+CORS: por defecto se aceptan `http://localhost:5173` y `http://127.0.0.1:5173` (Vite). Se cambia con `CORS_ORIGINS` en `.env`.
 
 Ejemplo:
 

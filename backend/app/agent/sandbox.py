@@ -79,6 +79,14 @@ class Sandbox:
             for name in ("customers", "clusters")
         }
 
+    def rename_cluster(self, cluster_id: int, name: str) -> None:
+        cursor = self._conn.cursor()
+        try:
+            cursor.execute("UPDATE clusters SET name = ? WHERE cluster_id = ?", [name, cluster_id])
+            cursor.execute("UPDATE customers SET cluster_name = ? WHERE cluster_id = ?", [name, cluster_id])
+        finally:
+            cursor.close()
+
     def query(self, sql: str, max_rows: int | None = None, limit: bool = True) -> QueryResult:
         max_rows = max_rows or self.max_rows
         safe_sql = validate_sql(sql, max_rows if limit else None)

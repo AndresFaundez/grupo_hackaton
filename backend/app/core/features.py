@@ -35,6 +35,9 @@ class FeatureSet:
     descriptions: dict[str, str]
     monetary_col: str | None
     pii: pd.DataFrame = field(default_factory=pd.DataFrame)
+    # Solo transaccional: días cubiertos por los datos y gasto por (cliente, categoría).
+    period_days: int | None = None
+    category_spend: pd.Series | None = None
 
 
 @dataclass
@@ -85,6 +88,7 @@ def _transactional(df: pd.DataFrame, schema: SchemaMapping) -> FeatureSet:
         df["_order"] = df[date].dt.normalize().astype(str)
 
     ref_date = df[date].max() + pd.Timedelta(days=1)
+    period_days = max((df[date].max() - df[date].min()).days + 1, 1)
     orders = df.groupby([cid, "_order"]).agg(amount=("_amount", "sum"), date=(date, "max")).reset_index()
     g = orders.groupby(cid)
     customers = pd.DataFrame(
@@ -100,9 +104,11 @@ def _transactional(df: pd.DataFrame, schema: SchemaMapping) -> FeatureSet:
     feature_cols = ["recency_days", "frequency", "monetary", "avg_ticket", "tenure_days"]
     attribute_cols: list[str] = []
     descriptions = {k: v for k, v in TRANSACTIONAL_DESCRIPTIONS.items()}
+    category_spend = None
 
     if schema.category and schema.category in df.columns:
         by_cat = df.groupby([cid, schema.category])["_amount"].sum()
+        category_spend = by_cat.rename_axis(["customer_id", "category"])
         totals = by_cat.groupby(level=0).sum()
         customers["n_categories"] = by_cat.groupby(level=0).size()
         customers["top_category_share"] = by_cat.groupby(level=0).max() / totals
@@ -129,6 +135,8 @@ def _transactional(df: pd.DataFrame, schema: SchemaMapping) -> FeatureSet:
         attribute_cols=attribute_cols,
         descriptions={c: descriptions[c] for c in feature_cols + attribute_cols},
         monetary_col="monetary",
+        period_days=period_days,
+        category_spend=category_spend,
     )
 
 

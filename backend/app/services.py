@@ -7,6 +7,7 @@ from fastapi import HTTPException, Request
 from app.agent.chat import ChatService
 from app.agent.llm import LLM
 from app.config import Settings
+from app.models import ClusterSummary
 from app.store import ClusteringRecord, DatasetRecord, Store
 
 
@@ -31,6 +32,12 @@ class Services:
         if record is None:
             raise HTTPException(404, f"Clustering {clustering_id} no existe")
         return record
+
+    def cluster(self, clustering_id: str, cluster_id: int) -> ClusterSummary:
+        summary = self.clustering(clustering_id).result.cluster(cluster_id)
+        if summary is None:
+            raise HTTPException(404, f"Cluster {cluster_id} no existe")
+        return summary
 
 
 def get_services(request: Request) -> Services:
