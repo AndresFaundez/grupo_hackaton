@@ -19,10 +19,9 @@ import pandas as pd
 from app.models import ClusteringResult, DatasetInfo
 
 if TYPE_CHECKING:
-    from sklearn.tree import DecisionTreeClassifier
-
     from app.agent.llm import Message
     from app.agent.sandbox import Sandbox
+    from app.core.rules import RuleSet
 
 log = logging.getLogger(__name__)
 
@@ -45,8 +44,7 @@ class ClusteringRecord:
     customers: pd.DataFrame
     # Columnas PII por customer_ref. Nunca se pasan al LLM; solo van a la UI.
     pii: pd.DataFrame
-    tree: DecisionTreeClassifier
-    tree_features: list[str]
+    rule_set: RuleSet
     sandbox: Sandbox
 
 
