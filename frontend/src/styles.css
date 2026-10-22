@@ -686,56 +686,68 @@ h3 {
 
 /* ---------- Paso 5: Campaña ---------- */
 
-.wizard-head {
+.campaign-head {
   display: flex;
   align-items: center;
-  gap: 24px;
-  flex-wrap: wrap;
-  margin-bottom: 16px;
-}
-
-.wizard-head h2 {
-  margin: 0;
-}
-
-.wizard-steps {
-  list-style: none;
-  display: flex;
+  justify-content: space-between;
   gap: 16px;
-  margin: 0;
-  padding: 0;
   flex-wrap: wrap;
 }
 
-.wizard-steps li {
-  color: #98a2b3;
-  font-size: 0.9rem;
+.campaign-head .lead {
+  margin: 0;
 }
 
-.wizard-steps li.current {
-  color: #3538cd;
-  font-weight: 700;
+.campaign-chat {
+  height: 62vh;
+  min-height: 460px;
 }
 
-.wizard-steps li.done {
-  color: #0e9384;
+.draft-message {
+  margin: 8px 0 0;
+  padding: 10px 14px;
+  background: #fff;
+  border-left: 3px solid #3538cd;
+  border-radius: 6px;
+  font-style: italic;
+  white-space: pre-wrap;
 }
 
-.wizard-steps .step-number {
-  background: #e4e7ec;
-  color: #475467;
-}
-
-.wizard-steps li.current .step-number {
-  background: #3538cd;
-  color: #fff;
-}
-
-.wizard-body {
-  max-width: 760px;
+.campaign-summary {
+  margin-top: 10px;
+  border-top: 1px solid #e4e7ec;
+  padding-top: 10px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 4px;
+}
+
+.campaign-summary p {
+  margin: 0;
+}
+
+.review-label {
+  color: #667085;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-right: 8px;
+}
+
+.review-message {
+  margin: 8px 0;
+  padding: 12px 16px;
+  background: #f9fafb;
+  border-left: 3px solid #3538cd;
+  border-radius: 6px;
+  font-style: italic;
+}
+
+.sim-note {
+  color: #b54708;
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
 }
 
 .segment-grid {
@@ -763,28 +775,6 @@ h3 {
   box-shadow: 0 0 0 2px rgba(53, 56, 205, 0.15);
 }
 
-.option-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px;
-}
-
-.option-pick {
-  background: #fff;
-  border: 1px solid #e4e7ec;
-  border-radius: 10px;
-  padding: 14px;
-  cursor: pointer;
-  text-align: left;
-  font: inherit;
-}
-
-.option-pick:hover,
-.option-pick.selected {
-  border-color: #3538cd;
-  box-shadow: 0 0 0 2px rgba(53, 56, 205, 0.15);
-}
-
 .suggested {
   background: #fff0e6;
   color: #b54708;
@@ -794,68 +784,6 @@ h3 {
   padding: 2px 8px;
   margin-left: 8px;
   letter-spacing: 0.05em;
-}
-
-.channel-row {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.message-box {
-  width: 100%;
-  border: 1px solid #e4e7ec;
-  border-radius: 10px;
-  padding: 12px;
-  font: inherit;
-  resize: vertical;
-}
-
-.message-box:focus {
-  outline: 2px solid rgba(53, 56, 205, 0.35);
-  border-color: #3538cd;
-}
-
-.review {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.review p {
-  margin: 0;
-}
-
-.review-label {
-  color: #667085;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-right: 8px;
-}
-
-.review-message {
-  margin: 8px 0;
-  padding: 12px 16px;
-  background: #f2f4f7;
-  border-left: 3px solid #3538cd;
-  border-radius: 6px;
-  font-style: italic;
-}
-
-.sim-note {
-  color: #b54708;
-  font-weight: 700;
-  font-size: 0.78rem;
-  letter-spacing: 0.05em;
-}
-
-.wizard-nav {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  border-top: 1px solid #f2f4f7;
-  padding-top: 16px;
 }
 
 /* ---------- Chat ---------- */

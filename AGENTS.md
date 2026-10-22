@@ -47,13 +47,16 @@ propio directorio; nadie trabaja fuera de su directorio asignado:
 ### Frontend (rama `frontend`)
 
 - Stack: React 18 + Vite + react-router-dom.
-- Vistas previstas: `Upload` (subir datos y lanzar el procesamiento),
-  `Dashboard` (lista de clusters más importantes con su caracterización),
-  `Clusters` (explorador: clic en un cluster abre su detalle con
-  descripción, cliente más representativo, tamaño de ventas, frecuencia
-  de compra, productos típicos y estrategias de marketing) y `Chat`
-  (conversación con la base de datos, con acceso a los datos filtrados
-  por cluster).
+- Vistas actuales (recorrido de 5 pasos, alineado al prototipo de Lovable):
+  `Datos` (subir CSV o usar datos de ejemplo), `Procesamiento` (progreso
+  simulado), `Clusters` (dispersión gasto vs frecuencia, nombres
+  propuestos por IA y editables), `Exploración` (ficha del segmento con
+  rasgos, cliente representativo y chat integrado) y `Campaña`
+  (selector de segmento y ventana conversacional con la IA para definir
+  objetivo, canal, mensaje y lanzar). Chat global "Preguntar a la IA"
+  disponible en un cajón lateral desde cualquier paso.
+- Datos de demostración en `frontend/src/data/` simulan las respuestas
+  del backend hasta que exista el contrato de API.
 - La capa de API (`frontend/src/api/`) no se construye hasta tener el
   contrato de endpoints del equipo de backend. Hasta entonces, las vistas
   se mantienen como esqueleto sin lógica de datos.

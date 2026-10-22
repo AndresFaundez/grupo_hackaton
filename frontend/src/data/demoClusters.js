@@ -148,3 +148,23 @@ export const channels = [
   { id: 'whatsapp', label: 'WhatsApp' },
   { id: 'sms', label: 'SMS' },
 ]
+
+// Borradores de mensaje por objetivo (simulan lo que generará la IA).
+export const campaignDrafts = {
+  recompra: [
+    '¡Te espera lo que te gusta! Volviste a estar entre nuestras novedades de la semana. Usa el código VUELVE15 y obtén 15% en tu próxima compra.',
+    'Nuevas novedades llegaron a tu categoría favorita. Compra esta semana con 15% de descuento con el código VUELVE15.',
+  ],
+  fidelizar: [
+    'Como cliente leal, tienes acceso anticipado a nuestro próximo lanzamiento antes que nadie. Gracias por acompañarnos.',
+    'Eres parte de los que siempre están. Estrena nuestra colección antes que nadie: acceso preferente activo en tu cuenta.',
+  ],
+  reactivar: [
+    'Te extrañamos. Tu opinión es valiosa: cuéntanos qué pasó y recibe un cupón de 20% para tu próxima compra.',
+    'Hace un tiempo no nos visitas. Volvemos con algo para ti: 20% de descuento en tu próxima compra, válido esta semana.',
+  ],
+  ticket: [
+    'Gracias por elegirnos. Como miembro preferente, estrena nuestra línea premium con envío gratis en compras sobre $150.000.',
+    'Elección premium: productos seleccionados y envío gratis sobre $150.000, solo para clientes como tú.',
+  ],
+}
