@@ -1147,3 +1147,125 @@ h3 {
     padding: 16px;
   }
 }
+
+/* ---------- Conexión con el backend ---------- */
+
+.empty-state {
+  max-width: 520px;
+  margin: 48px auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.error-box {
+  background: #fef3f2;
+  border: 1px solid #fecdca;
+  color: #b42318;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin: 12px 0;
+  font-size: 0.9rem;
+}
+
+.bubble.error {
+  background: #fef3f2;
+  color: #b42318;
+}
+
+.bubble.typing {
+  color: #667085;
+  font-style: italic;
+}
+
+.md > :first-child {
+  margin-top: 0;
+}
+
+.md > :last-child {
+  margin-bottom: 0;
+}
+
+.md p,
+.md ul,
+.md ol {
+  margin: 0 0 8px;
+}
+
+.md ul,
+.md ol {
+  padding-left: 20px;
+}
+
+.md h4 {
+  margin: 10px 0 6px;
+  font-size: 0.95rem;
+}
+
+.md hr {
+  border: none;
+  border-top: 1px solid #e4e7ec;
+  margin: 10px 0;
+}
+
+.md code,
+.chat-tools code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8rem;
+}
+
+.chat-tools {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: #475467;
+}
+
+.chat-tools summary {
+  cursor: pointer;
+  color: #3538cd;
+}
+
+.chat-tools ul {
+  margin: 6px 0 0;
+  padding-left: 16px;
+}
+
+.chat-tools code {
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: #fff;
+  border-radius: 4px;
+  padding: 4px 6px;
+  margin-top: 2px;
+}
+
+.tool-error {
+  color: #b42318;
+}
+
+.chat-attachments {
+  margin-top: 8px;
+}
+
+.draft-rationale {
+  margin: 6px 0 0;
+}
+
+.chip-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Las respuestas del LLM son largas: el chat lateral se limita a la ventana y hace scroll. */
+.chat-dock {
+  max-height: calc(100vh - 140px);
+  position: sticky;
+  top: 16px;
+}
+
+.chat-dock .chat,
+.chat-dock .chat-messages {
+  min-height: 0;
+}

@@ -1,17 +1,19 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useSegmentation } from '../context/Segmentation.jsx'
 
 export default function Datos() {
-  const [fileName, setFileName] = useState('')
+  const [file, setFile] = useState(null)
+  const { start } = useSegmentation()
   const navigate = useNavigate()
 
   const onPick = (event) => {
-    const file = event.target.files?.[0]
-    if (file) setFileName(file.name)
+    const picked = event.target.files?.[0]
+    if (picked) setFile(picked)
   }
 
-  const start = () => {
-    if (!fileName) return
+  const run = (source) => {
+    start(source)
     navigate('/procesando')
   }
 
@@ -33,14 +35,14 @@ export default function Datos() {
         <label className="dropzone-label">
           <input
             type="file"
-            accept=".csv,.xlsx,.xls,.json"
+            accept=".csv,.xlsx,.xls"
             onChange={onPick}
             aria-label="Archivo de transacciones"
           />
           <span>
-            {fileName
-              ? `Archivo seleccionado: ${fileName}`
-              : 'Arrastra tu archivo CSV aquí'}
+            {file
+              ? `Archivo seleccionado: ${file.name}`
+              : 'Arrastra tu archivo CSV o Excel aquí'}
           </span>
           <span className="muted small">
             o haz clic para seleccionarlo · id de cliente, fecha y monto como mínimo
@@ -50,22 +52,22 @@ export default function Datos() {
 
       <div className="upload-alt">
         <span className="muted">o</span>
-        <button className="primary" onClick={() => navigate('/procesando')}>
+        <button className="primary" onClick={() => run({ sample: true })}>
           Usar datos de ejemplo
         </button>
       </div>
 
-      {fileName && (
+      {file && (
         <div className="actions center">
-          <button className="primary" onClick={start}>
+          <button className="primary" onClick={() => run({ file })}>
             Procesar base de datos
           </button>
         </div>
       )}
 
       <p className="fineprint">
-        El envío al servicio de clustering quedará conectado cuando el equipo de
-        backend publique el contrato de API. Esta demo no envía datos.
+        Los datos personales (nombres, emails, teléfonos, RUT) nunca se envían a
+        la IA: solo estadísticas agregadas de cada segmento.
       </p>
       </div>
     </section>

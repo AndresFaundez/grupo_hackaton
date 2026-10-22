@@ -2,7 +2,7 @@ import { NavLink, Routes, Route, Navigate, BrowserRouter } from 'react-router-do
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import Layout from './Layout.jsx'
-import { ClusterNamesProvider } from './context/ClusterNames.jsx'
+import { SegmentationProvider } from './context/Segmentation.jsx'
 import Datos from './views/Datos.jsx'
 import Procesando from './views/Procesando.jsx'
 import Clusters from './views/Clusters.jsx'
@@ -12,7 +12,7 @@ import './styles.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <ClusterNamesProvider>
+    <SegmentationProvider>
       <BrowserRouter>
         <Routes>
           <Route element={<Layout />}>
@@ -25,6 +25,6 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           </Route>
         </Routes>
       </BrowserRouter>
-    </ClusterNamesProvider>
+    </SegmentationProvider>
   </React.StrictMode>,
 )

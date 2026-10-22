@@ -1,14 +1,22 @@
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { clusters } from '../data/demoClusters.js'
 import { formatNumber, formatPercent } from '../lib/format.js'
-import { useCluster } from '../context/ClusterNames.jsx'
+import { useCluster, useSegmentation } from '../context/Segmentation.jsx'
 import CampaignChat from '../components/CampaignChat.jsx'
+import NeedsData from '../components/NeedsData.jsx'
 
 export default function Campana() {
+  return (
+    <NeedsData>
+      <CampaignBuilder />
+    </NeedsData>
+  )
+}
+
+function CampaignBuilder() {
   const [searchParams] = useSearchParams()
-  const initial = searchParams.get('segmento')
-  const [segmentoId, setSegmentoId] = useState(initial)
+  const { clusters } = useSegmentation()
+  const [segmentoId, setSegmentoId] = useState(searchParams.get('segmento'))
   const cluster = useCluster(segmentoId ?? clusters[0].id)
 
   return (

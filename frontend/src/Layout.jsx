@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useState } from 'react'
 import ChatPanel from './components/ChatPanel.jsx'
+import { useSegmentation } from './context/Segmentation.jsx'
 
 const steps = [
   { to: '/', label: 'Datos', end: true },
@@ -13,6 +14,12 @@ const steps = [
 export default function Layout() {
   const [chatOpen, setChatOpen] = useState(false)
   const { pathname } = useLocation()
+  const { dataset, status } = useSegmentation()
+  const badge = dataset
+    ? dataset.fileName
+    : status === 'processing'
+      ? 'PROCESANDO…'
+      : 'SIN DATOS CARGADOS'
 
   return (
     <div className="app">
@@ -21,7 +28,7 @@ export default function Layout() {
           <NavLink to="/" className="brand-link">
             <span className="brand">Segmenta</span>
           </NavLink>
-          <span className="proto-badge">PROTOTIPO · DATOS DE DEMOSTRACIÓN</span>
+          <span className="proto-badge">{badge}</span>
           <button
             className="ask-ai"
             onClick={() => setChatOpen(true)}

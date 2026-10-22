@@ -1,24 +1,38 @@
-import { clusters } from '../data/demoClusters.js'
+import { clusterColor } from '../api/adapter.js'
 
 const W = 800
 const H = 400
 const PAD = 40
 
 // Animación decorativa: los clientes "caen" al lienzo y se agrupan en
-// clusters que emergen con su halo y su nombre. No son datos reales.
-const flat = clusters.flatMap((c) =>
-  c.points.map((p) => ({ ...p, color: c.color })),
-)
-const maxX = Math.max(...flat.map((p) => p.x)) * 1.05
-const maxY = Math.max(...flat.map((p) => p.y)) * 1.05
-const sx = (x) => PAD + (x / maxX) * (W - 2 * PAD)
-const sy = (y) => H - PAD - (y / maxY) * (H - 2 * PAD)
+// clusters que emergen con su halo. No son datos reales.
+const groups = [
+  { x: 0.25, y: 0.7, n: 14 },
+  { x: 0.72, y: 0.25, n: 9 },
+  { x: 0.6, y: 0.68, n: 12 },
+  { x: 0.2, y: 0.3, n: 11 },
+]
 
-const centers = clusters.map((c) => {
-  const cx = c.points.reduce((s, p) => s + p.x, 0) / c.points.length
-  const cy = c.points.reduce((s, p) => s + p.y, 0) / c.points.length
-  return { ...c, x: sx(cx), y: sy(cy) }
-})
+const centers = groups.map((g, i) => ({
+  id: i,
+  color: clusterColor(i),
+  x: PAD + g.x * (W - 2 * PAD),
+  y: PAD + g.y * (H - 2 * PAD),
+  label: `Grupo ${i + 1}`,
+}))
+
+const flat = groups.flatMap((g, gi) =>
+  Array.from({ length: g.n }, (_, i) => {
+    const a = (i / g.n) * Math.PI * 2
+    const jx = ((i * 7919) % 97) / 97 - 0.5
+    const jy = ((i * 104729) % 89) / 89 - 0.5
+    return {
+      x: centers[gi].x + Math.cos(a) * 38 + jx * 30,
+      y: centers[gi].y + Math.sin(a) * 30 + jy * 24,
+      color: centers[gi].color,
+    }
+  }),
+)
 
 export default function ClusterAnimation() {
   return (
@@ -45,8 +59,8 @@ export default function ClusterAnimation() {
           key={i}
           className="anim-point"
           style={{ animationDelay: `${(i * 0.05).toFixed(2)}s` }}
-          cx={sx(p.x)}
-          cy={sy(p.y)}
+          cx={p.x}
+          cy={p.y}
           r={5}
           fill={p.color}
         />
@@ -61,7 +75,7 @@ export default function ClusterAnimation() {
           textAnchor="middle"
           fill="#344054"
         >
-          {c.name}
+          {c.label}
         </text>
       ))}
     </svg>

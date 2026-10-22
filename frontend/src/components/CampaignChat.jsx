@@ -1,10 +1,17 @@
-import { useState } from 'react'
-import { campaignDrafts, channels, objectives } from '../data/demoClusters.js'
+import { useEffect, useRef, useState } from 'react'
+import { api } from '../api/client.js'
+import { channels, objectives } from '../lib/campaign.js'
+import { useSegmentation } from '../context/Segmentation.jsx'
+
+const nextStepChips = [
+  { id: 'lanzar', label: 'Lanzar campaña' },
+  { id: 'regenerar', label: 'Generar otra versión' },
+]
 
 // Ventana conversacional para definir y lanzar una campaña sobre un segmento.
-// La conversación está guionizada en demo; el LLM real reemplazará las
-// respuestas cuando el backend publique su contrato.
+// Los borradores los genera la IA con los datos agregados del segmento.
 export default function CampaignChat({ cluster }) {
+  const { clusteringId } = useSegmentation()
   const [messages, setMessages] = useState(() => [
     {
       role: 'assistant',
@@ -16,9 +23,15 @@ export default function CampaignChat({ cluster }) {
       })),
     },
   ])
-  const [draftIndex, setDraftIndex] = useState(0)
   const [input, setInput] = useState('')
   const [selection, setSelection] = useState({ objetivo: null, canal: null })
+  const [draft, setDraft] = useState(null)
+  const [pending, setPending] = useState(false)
+  const listRef = useRef(null)
+
+  useEffect(() => {
+    listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' })
+  }, [messages, pending])
 
   const push = (msg) => setMessages((prev) => [...prev, msg])
   const pushUser = (text) => push({ role: 'user', text })
@@ -26,6 +39,29 @@ export default function CampaignChat({ cluster }) {
     setMessages((prev) =>
       prev.map((m, i) => (i === prev.length - 1 && m.chips ? { ...m, chips: null } : m)),
     )
+
+  const requestDraft = async ({ objetivo, canal, instructions, previous }) => {
+    setPending(true)
+    try {
+      const result = await api.campaignDraft(clusteringId, cluster.clusterId, {
+        objective: objetivo,
+        channel: canal,
+        instructions: instructions ?? null,
+        previous_message: previous ?? null,
+      })
+      setDraft(result)
+      push({
+        role: 'assistant',
+        text: previous || instructions ? 'Aquí va otra versión:' : 'Este es el borrador del mensaje:',
+        draft: result,
+      })
+      push({ role: 'assistant', text: '¿Lo lanzamos o genero otra versión? También puedes escribirme ajustes.', chips: nextStepChips })
+    } catch (e) {
+      push({ role: 'assistant', text: e.message, error: true, chips: nextStepChips.slice(1) })
+    } finally {
+      setPending(false)
+    }
+  }
 
   const pickObjective = (o) => {
     clearChips()
@@ -41,21 +77,9 @@ export default function CampaignChat({ cluster }) {
   const pickChannel = (c) => {
     clearChips()
     pushUser(c.label)
-    setSelection((s) => ({ ...s, canal: c.id }))
-    showDraft()
-  }
-
-  const showDraft = () => {
-    const draft = campaignDrafts[selection.objetivo][draftIndex]
-    push({ role: 'assistant', text: 'Este es el borrador del mensaje:', draft })
-    push({
-      role: 'assistant',
-      text: '¿Lo lanzamos o genero otra versión?',
-      chips: [
-        { id: 'lanzar', label: 'Lanzar campaña' },
-        { id: 'regenerar', label: 'Generar otra versión' },
-      ],
-    })
+    const next = { ...selection, canal: c.id }
+    setSelection(next)
+    requestDraft(next)
   }
 
   const launch = () => {
@@ -65,34 +89,25 @@ export default function CampaignChat({ cluster }) {
     const objetivoLabel = objectives.find((o) => o.id === selection.objetivo)?.label
     push({
       role: 'assistant',
-      text: `Campaña lanzada a los ${cluster.customers.toLocaleString('es-CL')} clientes de «${cluster.name}» por ${canalLabel}. Te aviso cuando tengamos los primeros resultados.`,
+      text: `Campaña lista para los ${cluster.customers.toLocaleString('es-CL')} clientes de «${cluster.name}» por ${canalLabel}.`,
       card: {
         segmento: cluster.name,
         objetivo: objetivoLabel,
         canal: canalLabel,
-        mensaje: campaignDrafts[selection.objetivo][draftIndex],
+        asunto: draft?.subject,
+        mensaje: draft?.message,
       },
     })
   }
 
-  const regenerate = () => {
+  const regenerate = (instructions) => {
     clearChips()
-    pushUser('Generar otra versión')
-    const next = draftIndex + 1
-    setDraftIndex(next)
-    const draft = campaignDrafts[selection.objetivo][next % campaignDrafts[selection.objetivo].length]
-    push({ role: 'assistant', text: 'Aquí va otra versión:', draft })
-    push({
-      role: 'assistant',
-      text: '¿La lanzamos?',
-      chips: [
-        { id: 'lanzar', label: 'Lanzar campaña' },
-        { id: 'regenerar', label: 'Generar otra versión' },
-      ],
-    })
+    pushUser(instructions ?? 'Generar otra versión')
+    requestDraft({ ...selection, instructions, previous: draft?.message })
   }
 
   const onChip = (chip) => {
+    if (pending) return
     if (chip.id === 'lanzar') return launch()
     if (chip.id === 'regenerar') return regenerate()
     if (selection.objetivo === null) return pickObjective(objectives.find((o) => o.id === chip.id))
@@ -101,30 +116,41 @@ export default function CampaignChat({ cluster }) {
 
   const send = (text) => {
     const trimmed = text.trim()
-    if (!trimmed) return
-    pushUser(trimmed)
-    push({
-      role: 'assistant',
-      text: 'En la versión conectada al LLM podré ajustar el mensaje con tus indicaciones. Por ahora usa las opciones rápidas de abajo.',
-    })
+    if (!trimmed || pending) return
     setInput('')
+    if (!selection.objetivo || !selection.canal) {
+      pushUser(trimmed)
+      push({ role: 'assistant', text: 'Primero elige el objetivo y el canal con las opciones de arriba; después ajusto el mensaje como me digas.' })
+      return
+    }
+    regenerate(trimmed)
   }
 
   return (
     <div className="chat campaign-chat">
-      <div className="chat-messages">
+      <div className="chat-messages" ref={listRef}>
         {messages.map((message, index) => (
           <div key={index} style={{ display: 'contents' }}>
-            <div className={`bubble ${message.role}`}>
+            <div className={`bubble ${message.role}${message.error ? ' error' : ''}`}>
               {message.text}
-              {message.draft && <blockquote className="draft-message">{message.draft}</blockquote>}
+              {message.draft && (
+                <blockquote className="draft-message">
+                  {message.draft.subject && <strong className="d-block">Asunto: {message.draft.subject}</strong>}
+                  {message.draft.message}
+                </blockquote>
+              )}
+              {message.draft?.rationale && <p className="muted small draft-rationale">{message.draft.rationale}</p>}
               {message.card && (
                 <div className="campaign-summary">
                   <p><span className="review-label">Segmento</span> {message.card.segmento}</p>
                   <p><span className="review-label">Objetivo</span> {message.card.objetivo}</p>
                   <p><span className="review-label">Canal</span> {message.card.canal}</p>
+                  {message.card.asunto && <p><span className="review-label">Asunto</span> {message.card.asunto}</p>}
                   <blockquote className="review-message">{message.card.mensaje}</blockquote>
-                  <p className="sim-note">SIMULACIÓN — el envío real quedará conectado al backend.</p>
+                  <a className="link-button strong" href={api.audienceUrl(clusteringId, cluster.clusterId)}>
+                    Descargar audiencia (CSV)
+                  </a>
+                  <p className="sim-note">SIMULACIÓN — el envío real se conectará a la herramienta de mensajería.</p>
                 </div>
               )}
             </div>
@@ -135,6 +161,7 @@ export default function CampaignChat({ cluster }) {
                     key={chip.id}
                     className="chip chip-button"
                     onClick={() => onChip(chip)}
+                    disabled={pending}
                   >
                     {chip.label}
                     {chip.suggested && <span className="suggested">SUGERIDO</span>}
@@ -144,6 +171,7 @@ export default function CampaignChat({ cluster }) {
             )}
           </div>
         ))}
+        {pending && <div className="bubble assistant typing">Escribiendo el mensaje…</div>}
       </div>
 
       <form
@@ -160,7 +188,7 @@ export default function CampaignChat({ cluster }) {
           placeholder="Escribe una indicación para la campaña…"
           aria-label="Mensaje"
         />
-        <button className="primary" type="submit">Enviar</button>
+        <button className="primary" type="submit" disabled={pending}>Enviar</button>
       </form>
     </div>
   )
