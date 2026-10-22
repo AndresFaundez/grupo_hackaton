@@ -3,8 +3,10 @@ export default function Chat() {
     <section>
       <h2>Chat IA</h2>
       <p className="placeholder">
-        Conversación con la base de datos usando el clustering y su
-        interpretación, para decisiones de marketing.
+        Chat LLM sobre los clusters: responde con la información de la
+        segmentación y, si es necesario, consulta la base de datos
+        filtrada por el cluster del que se habla. Para pedir estrategias
+        de marketing y más información.
       </p>
     </section>
   )

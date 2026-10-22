@@ -3,8 +3,8 @@ export default function Upload() {
     <section>
       <h2>Subir datos</h2>
       <p className="placeholder">
-        Aquí se recibirá la base de transacciones en bruto (CSV / Excel).
-        Pendiente del contrato de API del equipo de backend.
+        Aquí se pasa la base de datos en bruto (CSV / Excel) y se lanza el
+        procesamiento. Pendiente del contrato de API del equipo de backend.
       </p>
     </section>
   )
