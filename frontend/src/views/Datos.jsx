@@ -17,13 +17,18 @@ export default function Datos() {
 
   return (
     <section className="hero">
-      <h1 className="hero-title">Descubre quiénes son tus clientes</h1>
-      <p className="lead center">
-        Sube tu historial de transacciones. Agruparemos a tus clientes según
-        cuándo compran, con qué frecuencia y cuánto gastan.
-      </p>
+      <div className="hero-gradient">
+        <span className="floating-dot d1" aria-hidden="true" />
+        <span className="floating-dot d2" aria-hidden="true" />
+        <span className="floating-dot d3" aria-hidden="true" />
+        <span className="floating-dot d4" aria-hidden="true" />
+        <h1 className="hero-title">Descubre quiénes son tus clientes</h1>
+        <p className="lead center">
+          Sube tu historial de transacciones. Agruparemos a tus clientes según
+          cuándo compran, con qué frecuencia y cuánto gastan.
+        </p>
 
-      <div className="card dropzone">
+        <div className="card dropzone">
         <div className="dropzone-icon" aria-hidden="true">+</div>
         <label className="dropzone-label">
           <input
@@ -62,6 +67,7 @@ export default function Datos() {
         El envío al servicio de clustering quedará conectado cuando el equipo de
         backend publique el contrato de API. Esta demo no envía datos.
       </p>
+      </div>
     </section>
   )
 }

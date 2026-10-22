@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import ClusterAnimation from '../components/ClusterAnimation.jsx'
 
 const phases = [
   'Leyendo transacciones…',
@@ -29,6 +30,9 @@ export default function Procesando() {
           {done ? '✓' : '…'}
         </div>
         <h3>{done ? 'Segmentación lista' : 'Procesando tus datos'}</h3>
+        <div className="anim-stage">
+          <ClusterAnimation />
+        </div>
         <ul className="phase-list">
           {phases.map((label, index) => (
             <li
