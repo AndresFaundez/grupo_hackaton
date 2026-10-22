@@ -150,7 +150,8 @@ export const channels = [
 ]
 
 // Borradores de mensaje por objetivo (simulan lo que generará la IA).
-export const campaignDrafts = {  recompra: [
+export const campaignDrafts = {
+  recompra: [
     '¡Te espera lo que te gusta! Volviste a estar entre nuestras novedades de la semana. Usa el código VUELVE15 y obtén 15% en tu próxima compra.',
     'Nuevas novedades llegaron a tu categoría favorita. Compra esta semana con 15% de descuento con el código VUELVE15.',
   ],
@@ -167,22 +168,3 @@ export const campaignDrafts = {  recompra: [
     'Elección premium: productos seleccionados y envío gratis sobre $150.000, solo para clientes como tú.',
   ],
 }
-
-// Clientes de demostración para el explorador de la base de datos.
-// Deterministas: mismo archivo, mismos clientes.
-const firstNames = ['Ana', 'Luis', 'Camila', 'Javier', 'Fernanda', 'Mateo', 'Josefa', 'Tomás', 'Valentina', 'Cristóbal', 'Isidora', 'Nicolás']
-const lastNames = ['Soto', 'Muñoz', 'Rojas', 'Silva', 'Pérez', 'Contreras', 'Morales', 'Fuentes', 'Herrera', 'Álvarez', 'Castro', 'Navarro']
-
-export const customers = clusters.flatMap((c, ci) =>
-  Array.from({ length: 12 }, (_, i) => {
-    const r = ((i * 37 + ci * 11) % 100) / 100
-    return {
-      id: `CLI-${String(ci * 12 + i + 101).padStart(4, '0')}`,
-      name: `${firstNames[(i + ci * 5) % 12]} ${lastNames[(i * 3 + ci * 7) % 12]}`,
-      cluster: c.id,
-      spend: Math.round(c.avgSpend * (0.7 + r * 0.6)),
-      frequency: +(c.frequencyPerYear * (0.7 + r * 0.6)).toFixed(1),
-      lastPurchase: Math.round(1 + r * 90),
-    }
-  }),
-)

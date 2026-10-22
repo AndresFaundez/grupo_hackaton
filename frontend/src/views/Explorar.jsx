@@ -105,7 +105,7 @@ export default function Explorar() {
             ))}
           </ul>
 
-          <Link className="primary campaign-link" to={`/recorrido/campana?segmento=${cluster.id}`}>
+          <Link className="primary campaign-link" to={`/campana?segmento=${cluster.id}`}>
             Preparar campaña para este segmento
           </Link>
         </article>

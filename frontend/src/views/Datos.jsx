@@ -12,7 +12,7 @@ export default function Datos() {
 
   const start = () => {
     if (!fileName) return
-    navigate('/recorrido/procesando')
+    navigate('/procesando')
   }
 
   return (
@@ -50,7 +50,7 @@ export default function Datos() {
 
       <div className="upload-alt">
         <span className="muted">o</span>
-        <button className="primary" onClick={() => navigate('/recorrido/procesando')}>
+        <button className="primary" onClick={() => navigate('/procesando')}>
           Usar datos de ejemplo
         </button>
       </div>
