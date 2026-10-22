@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { api } from '../api/client.js'
 import { channels, objectives } from '../lib/campaign.js'
 import { useSegmentation } from '../context/Segmentation.jsx'
+import Icon from './Icon.jsx'
 
 const nextStepChips = [
   { id: 'lanzar', label: 'Lanzar campaña' },
@@ -10,7 +11,7 @@ const nextStepChips = [
 
 // Ventana conversacional para definir y lanzar una campaña sobre un segmento.
 // Los borradores los genera la IA con los datos agregados del segmento.
-export default function CampaignChat({ cluster }) {
+export default function CampaignChat({ cluster, onProgress }) {
   const { clusteringId } = useSegmentation()
   const [messages, setMessages] = useState(() => [
     {
@@ -27,7 +28,13 @@ export default function CampaignChat({ cluster }) {
   const [selection, setSelection] = useState({ objetivo: null, canal: null })
   const [draft, setDraft] = useState(null)
   const [pending, setPending] = useState(false)
+  const [launched, setLaunched] = useState(false)
   const listRef = useRef(null)
+
+  // Avisa a la vista del avance para el panel "Tu campaña".
+  useEffect(() => {
+    onProgress?.({ ...selection, draft, launched, pending })
+  }, [selection, draft, launched, pending, onProgress])
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' })
@@ -84,6 +91,7 @@ export default function CampaignChat({ cluster }) {
 
   const launch = () => {
     clearChips()
+    setLaunched(true)
     pushUser('Lanzar campaña')
     const canalLabel = channels.find((c) => c.id === selection.canal)?.label
     const objetivoLabel = objectives.find((o) => o.id === selection.objetivo)?.label
@@ -128,7 +136,7 @@ export default function CampaignChat({ cluster }) {
 
   return (
     <div className="chat campaign-chat">
-      <div className="chat-messages" ref={listRef}>
+      <div className="chat-messages" ref={listRef} aria-live="polite">
         {messages.map((message, index) => (
           <div key={index} style={{ display: 'contents' }}>
             <div className={`bubble ${message.role}${message.error ? ' error' : ''}`}>
@@ -147,10 +155,10 @@ export default function CampaignChat({ cluster }) {
                   <p><span className="review-label">Canal</span> {message.card.canal}</p>
                   {message.card.asunto && <p><span className="review-label">Asunto</span> {message.card.asunto}</p>}
                   <blockquote className="review-message">{message.card.mensaje}</blockquote>
-                  <a className="link-button strong" href={api.audienceUrl(clusteringId, cluster.clusterId)}>
-                    Descargar audiencia (CSV)
+                  <a className="download-link" href={api.audienceUrl(clusteringId, cluster.clusterId)}>
+                    <Icon name="download" size={16} /> Descargar lista de clientes (CSV)
                   </a>
-                  <p className="sim-note">SIMULACIÓN — el envío real se conectará a la herramienta de mensajería.</p>
+                  <p className="sim-note">Simulación: el envío real se conectará a tu herramienta de mensajería.</p>
                 </div>
               )}
             </div>
@@ -159,19 +167,32 @@ export default function CampaignChat({ cluster }) {
                 {message.chips.map((chip) => (
                   <button
                     key={chip.id}
-                    className="chip chip-button"
+                    className={'chip-button' + (chip.suggested ? ' suggested' : '')}
                     onClick={() => onChip(chip)}
                     disabled={pending}
                   >
                     {chip.label}
-                    {chip.suggested && <span className="suggested">SUGERIDO</span>}
+                    {chip.suggested && (
+                      <span className="suggested-tag">
+                        <Icon name="sparkle" size={12} /> Recomendado
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>
             )}
           </div>
         ))}
-        {pending && <div className="bubble assistant typing">Escribiendo el mensaje…</div>}
+        {pending && (
+          <div className="bubble assistant typing">
+            <span className="typing-dots" aria-hidden="true">
+              <i />
+              <i />
+              <i />
+            </span>
+            Escribiendo el mensaje…
+          </div>
+        )}
       </div>
 
       <form
@@ -185,10 +206,12 @@ export default function CampaignChat({ cluster }) {
           type="text"
           value={input}
           onChange={(event) => setInput(event.target.value)}
-          placeholder="Escribe una indicación para la campaña…"
+          placeholder="Pide un cambio: «más corto», «tono más cercano»…"
           aria-label="Mensaje"
         />
-        <button className="primary" type="submit" disabled={pending}>Enviar</button>
+        <button className="send-button" type="submit" aria-label="Enviar" disabled={pending || !input.trim()}>
+          <Icon name="send" size={18} />
+        </button>
       </form>
     </div>
   )

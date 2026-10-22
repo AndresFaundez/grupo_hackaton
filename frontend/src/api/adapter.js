@@ -1,7 +1,8 @@
 // Traduce la respuesta del backend (ClusteringResult) a la forma que usan las vistas.
 import { formatCLP, formatDecimal } from '../lib/format.js'
 
-const PALETTE = ['#3538cd', '#0e9384', '#e04f2f', '#ca8504', '#dd2590', '#7a5af8', '#1570ef', '#4e5ba6']
+// Morados de distinta luminosidad y matiz para que cada segmento se distinga.
+const PALETTE = ['#7433e6', '#2f0f66', '#b794ff', '#c026d3', '#4f46e5', '#86198f', '#e879f9', '#5b21b6']
 
 export const clusterColor = (index) => PALETTE[index % PALETTE.length]
 

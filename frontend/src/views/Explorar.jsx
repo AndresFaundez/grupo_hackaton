@@ -1,10 +1,28 @@
 import { Link, useSearchParams } from 'react-router-dom'
-import { formatCLP, formatDecimal, formatNumber, formatPercent } from '../lib/format.js'
+import {
+  daysBetweenPurchases,
+  formatCLP,
+  formatDecimal,
+  formatMillions,
+  formatNumber,
+  formatPercent,
+} from '../lib/format.js'
+import { salesOf } from '../lib/segments.js'
 import { useCluster, useSegmentation } from '../context/Segmentation.jsx'
 import EditableName from '../components/EditableName.jsx'
 import NeedsData from '../components/NeedsData.jsx'
 import Scatter from '../components/Scatter.jsx'
 import ChatPanel from '../components/ChatPanel.jsx'
+import Icon from '../components/Icon.jsx'
+
+const initials = (fullName) =>
+  fullName
+    .split(/\s+/)
+    .filter((part) => /^\p{L}/u.test(part))
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase() || '★'
 
 export default function Explorar() {
   return (
@@ -16,28 +34,62 @@ export default function Explorar() {
 
 function ClusterDetail() {
   const [searchParams, setSearchParams] = useSearchParams()
-  const { clusters, rename } = useSegmentation()
+  const { clusters, dataset, rename } = useSegmentation()
   const id = searchParams.get('segmento') ?? clusters[0].id
   const cluster = useCluster(id)
   const rep = cluster.representativeCustomer
+  const days = daysBetweenPurchases(cluster.frequencyPerYear)
 
   const select = (cid) => setSearchParams({ segmento: cid })
 
+  const kpis = [
+    {
+      icon: 'users',
+      label: 'Clientes',
+      value: formatNumber(cluster.customers),
+      note: `${formatPercent(cluster.share)} de tu base`,
+    },
+    {
+      icon: 'coins',
+      label: 'Ventas del grupo',
+      value: formatMillions(salesOf(cluster, dataset)),
+      note:
+        cluster.revenueShare != null ? `${formatPercent(cluster.revenueShare)} de tus ventas` : 'del total',
+    },
+    {
+      icon: 'ticket',
+      label: 'Gasto por cliente',
+      value: formatCLP(cluster.avgSpend),
+      note: cluster.avgTicket != null ? `ticket promedio ${formatCLP(cluster.avgTicket)}` : 'promedio',
+    },
+    {
+      icon: 'repeat',
+      label: 'Frecuencia',
+      value: days != null ? `Cada ~${days} días` : '—',
+      note:
+        cluster.daysSinceLastPurchase != null
+          ? `última compra hace ${Math.round(cluster.daysSinceLastPurchase)} días`
+          : `${formatDecimal(cluster.frequencyPerYear)} compras al año`,
+    },
+  ]
+
   return (
     <section className="explore">
-      <div className="explore-side">
-        <div className="side-title">CLUSTERS</div>
+      <aside className="explore-side">
+        <h2 className="side-title">Tus segmentos</h2>
         <ul className="side-list">
           {clusters.map((c) => (
             <li key={c.id}>
               <button
                 className={c.id === cluster.id ? 'side-item selected' : 'side-item'}
+                style={{ '--seg': c.color }}
                 onClick={() => select(c.id)}
+                aria-current={c.id === cluster.id ? 'true' : undefined}
               >
-                <span className="cluster-dot" style={{ background: c.color }} aria-hidden="true" />
+                <span className="cluster-swatch" aria-hidden="true" />
                 <span className="side-item-body">
                   <strong>{c.name}</strong>
-                  <span className="muted">
+                  <span className="muted small">
                     {formatNumber(c.customers)} clientes · {formatPercent(c.share)}
                   </span>
                 </span>
@@ -45,104 +97,130 @@ function ClusterDetail() {
             </li>
           ))}
         </ul>
-        <div className="card scatter-card small">
-          <Scatter highlight={cluster.id} onPointClick={select} />
+        <div className="card map-card compact">
+          <Scatter highlight={cluster.id} onPointClick={select} showLegend={false} />
+          <p className="muted small map-help">Toca un punto para cambiar de grupo.</p>
         </div>
-      </div>
+      </aside>
 
       <div className="explore-main">
-        <article className="card detail">
-          <p className="muted small">
-            Nombre y descripción propuestos por la IA · editables
-          </p>
-          <div className="cluster-head">
-            <span className="cluster-dot" style={{ background: cluster.color }} aria-hidden="true" />
-            <EditableName name={cluster.name} onRename={(name) => rename(cluster.id, name)} />
-          </div>
-          <div className="badges">
-            {cluster.characterization.map((tag) => (
-              <span className="badge" key={tag}>{tag}</span>
-            ))}
-          </div>
-          <p className="cluster-desc">{cluster.description}</p>
-
-          <h3 className="detail-heading">Características que distinguen al grupo</h3>
-          <ul className="chip-list">
-            {cluster.traits.map((trait) => (
-              <li className="chip" key={trait}>{trait}</li>
-            ))}
-          </ul>
-
-          <div className="detail-grid">
-            <div className="detail-item">
-              <h4>Tamaño del segmento</h4>
-              <p className="stat-value">{formatNumber(cluster.customers)}</p>
-              <p className="muted">
-                {formatPercent(cluster.share)} de la base
-                {cluster.revenueShare != null && <> · {formatPercent(cluster.revenueShare)} de las ventas</>}
-              </p>
+        <article className="detail" key={cluster.id} style={{ '--seg': cluster.color }}>
+          <header className="detail-hero">
+            <span className="eyebrow">
+              <Icon name="sparkle" size={14} /> Perfil creado por la IA
+            </span>
+            <div className="detail-title">
+              <EditableName as="h1" name={cluster.name} onRename={(name) => rename(cluster.id, name)} />
             </div>
-            <div className="detail-item">
-              <h4>Gasto promedio</h4>
-              <p className="stat-value">{formatCLP(cluster.avgSpend)}</p>
-              <p className="muted">por cliente{cluster.avgTicket != null && <> · ticket {formatCLP(cluster.avgTicket)}</>}</p>
-            </div>
-            <div className="detail-item">
-              <h4>Frecuencia</h4>
-              <p className="stat-value">{formatDecimal(cluster.frequencyPerYear)}</p>
-              <p className="muted">
-                compras al año
-                {cluster.daysSinceLastPurchase != null && (
-                  <> · última hace {Math.round(cluster.daysSinceLastPurchase)} días</>
-                )}
-              </p>
-            </div>
-            <div className="detail-item">
-              <h4>Qué compran en general</h4>
-              <ul className="chip-list">
-                {cluster.topProducts.length ? (
-                  cluster.topProducts.map((p) => (
-                    <li className="chip" key={p}>{p}</li>
-                  ))
-                ) : (
-                  <li className="muted">Sin categorías en los datos</li>
-                )}
+            <p className="detail-desc">{cluster.description}</p>
+            {cluster.characterization.length > 0 && (
+              <ul className="tag-list" aria-label="Rasgos principales">
+                {cluster.characterization.map((tag) => (
+                  <li className="tag" key={tag}>{tag}</li>
+                ))}
               </ul>
-            </div>
-            {rep && (
-              <div className="detail-item wide">
-                <h4>Cliente más representativo</h4>
-                <p>
-                  <strong>{rep.name}</strong>
-                  {rep.facts && <span className="muted"> · {rep.facts}</span>}
-                </p>
-                {rep.profile && <p className="muted">{rep.profile}</p>}
-              </div>
             )}
+          </header>
+
+          <dl className="kpi-grid">
+            {kpis.map((kpi) => (
+              <div className="kpi" key={kpi.label}>
+                <dt>
+                  <Icon name={kpi.icon} size={16} /> {kpi.label}
+                </dt>
+                <dd className="kpi-value">{kpi.value}</dd>
+                <dd className="muted small">{kpi.note}</dd>
+              </div>
+            ))}
+          </dl>
+
+          <div className="detail-columns">
+            <section className="card persona">
+              <h3 className="card-title">
+                <Icon name="target" size={18} /> Su cliente típico
+              </h3>
+              {rep ? (
+                <>
+                  <div className="persona-head">
+                    <span className="persona-avatar" aria-hidden="true">
+                      {initials(rep.name)}
+                    </span>
+                    <div>
+                      <strong>{rep.name}</strong>
+                      {rep.facts && <span className="muted small d-block">{rep.facts}</span>}
+                    </div>
+                  </div>
+                  {rep.profile && <p className="persona-quote">{rep.profile}</p>}
+                </>
+              ) : (
+                <p className="muted">Sin un cliente representativo en los datos.</p>
+              )}
+              {cluster.traits.length > 0 && (
+                <>
+                  <h4 className="mini-heading">Qué los distingue</h4>
+                  <ul className="chip-list">
+                    {cluster.traits.map((trait) => (
+                      <li className="chip" key={trait}>{trait}</li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </section>
+
+            <section className="card">
+              <h3 className="card-title">
+                <Icon name="bag" size={18} /> Lo que más compran
+              </h3>
+              {cluster.topProducts.length ? (
+                <ol className="rank-list">
+                  {cluster.topProducts.map((product, index) => (
+                    <li key={product}>
+                      <span className="rank-num">{index + 1}</span>
+                      {product}
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p className="muted">Tu archivo no trae productos ni categorías.</p>
+              )}
+            </section>
           </div>
 
-          <h3 className="detail-heading">Estrategias de marketing sugeridas</h3>
-          <ul className="strategy-list">
-            {cluster.strategies.map((s) => (
-              <li key={s}>{s}</li>
-            ))}
-          </ul>
-
-          <Link className="primary campaign-link" to={`/campana?segmento=${cluster.id}`}>
-            Preparar campaña para este segmento
-          </Link>
+          <section className="card ideas">
+            <h3 className="card-title">
+              <Icon name="bulb" size={18} /> Ideas de campaña para este grupo
+            </h3>
+            <ol className="idea-list">
+              {cluster.strategies.map((strategy, index) => (
+                <li key={strategy}>
+                  <span className="idea-num">{String(index + 1).padStart(2, '0')}</span>
+                  <span>{strategy}</span>
+                </li>
+              ))}
+            </ol>
+            <Link className="primary" to={`/campana?segmento=${cluster.id}`}>
+              <Icon name="megaphone" size={18} /> Crear campaña para {cluster.name}
+            </Link>
+          </section>
         </article>
 
-        <div className="chat-dock">
-          <div className="chat-dock-title">Chat con los datos · {cluster.name}</div>
+        <aside className="chat-dock">
+          <div className="chat-dock-head">
+            <span className="ai-avatar" aria-hidden="true">
+              <Icon name="sparkle" size={16} />
+            </span>
+            <div>
+              <strong>Pregúntale a la IA</strong>
+              <span className="muted small d-block">sobre {cluster.name}</span>
+            </div>
+          </div>
           <ChatPanel
             key={cluster.id}
-            compact
             clusterId={cluster.clusterId}
             suggestions={cluster.suggestedQuestions}
-            intro={`Pregúntame por el cluster "${cluster.name}" o por cualquier otro segmento. Puedo darte estrategias y más información.`}
+            intro={`Conozco a fondo a «${cluster.name}». Pregúntame qué les gusta, cómo hablarles o qué campaña lanzarles.`}
           />
-        </div>
+        </aside>
       </div>
     </section>
   )

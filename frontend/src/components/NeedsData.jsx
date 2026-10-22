@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useSegmentation } from '../context/Segmentation.jsx'
+import Icon from './Icon.jsx'
 
 // Envuelve las vistas que necesitan una segmentación lista.
 export default function NeedsData({ children }) {
@@ -9,14 +10,23 @@ export default function NeedsData({ children }) {
   const processing = status === 'processing'
   return (
     <section className="empty-state card">
-      <h3>{processing ? 'Estamos procesando tus datos' : 'Aún no hay una segmentación'}</h3>
-      <p className="muted">
+      <span className="empty-icon" aria-hidden="true">
+        <Icon name={processing ? 'sparkle' : 'upload'} size={26} />
+      </span>
+      <h1 className="display">
+        {processing ? (
+          <>Estamos analizando <em>tus datos</em></>
+        ) : (
+          <>Aún no hay <em>segmentos</em></>
+        )}
+      </h1>
+      <p className="lead">
         {processing
-          ? 'En unos segundos tendrás tus clusters listos.'
-          : 'Sube tu historial de transacciones o usa los datos de ejemplo para empezar.'}
+          ? 'En unos segundos tendrás a tus clientes agrupados.'
+          : 'Sube tu historial de ventas o prueba con los datos de ejemplo para empezar.'}
       </p>
-      <Link className="primary" to={processing ? '/procesando' : '/'}>
-        {processing ? 'Ver el procesamiento' : 'Ir a cargar datos'}
+      <Link className="primary large" to={processing ? '/procesando' : '/'}>
+        {processing ? 'Ver el análisis' : 'Cargar mis ventas'} <Icon name="arrowRight" size={18} />
       </Link>
     </section>
   )

@@ -5,7 +5,7 @@ const H = 400
 const PAD = 40
 
 // Animación decorativa: los clientes "caen" al lienzo y se agrupan en
-// clusters que emergen con su halo. No son datos reales.
+// segmentos que emergen con su halo. No son datos reales.
 const groups = [
   { x: 0.25, y: 0.7, n: 14 },
   { x: 0.72, y: 0.25, n: 9 },
@@ -40,19 +40,18 @@ export default function ClusterAnimation() {
       viewBox={`0 0 ${W} ${H}`}
       className="cluster-anim"
       role="img"
-      aria-label="Animación de clientes agrupándose en clusters"
+      aria-label="Animación de clientes agrupándose en segmentos"
     >
       {centers.map((c, i) => (
-        <g key={c.id}>
-          <circle
-            className="anim-halo"
-            style={{ animationDelay: `${(1.4 + i * 0.18).toFixed(2)}s` }}
-            cx={c.x}
-            cy={c.y}
-            r={62}
-            fill={c.color}
-          />
-        </g>
+        <circle
+          key={c.id}
+          className="anim-halo"
+          style={{ animationDelay: `${(1.4 + i * 0.18).toFixed(2)}s` }}
+          cx={c.x}
+          cy={c.y}
+          r={62}
+          fill={c.color}
+        />
       ))}
       {flat.map((p, i) => (
         <circle
@@ -73,7 +72,6 @@ export default function ClusterAnimation() {
           x={c.x}
           y={c.y - 70}
           textAnchor="middle"
-          fill="#344054"
         >
           {c.label}
         </text>

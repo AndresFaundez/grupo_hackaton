@@ -2,20 +2,21 @@ import { useEffect, useRef, useState } from 'react'
 import { api } from '../api/client.js'
 import { useSegmentation } from '../context/Segmentation.jsx'
 import Markdown from './Markdown.jsx'
+import Icon from './Icon.jsx'
 
 const defaultIntro =
-  'Hola. Tengo la información de la segmentación de clientes: puedo contarte sobre los clusters, sus patrones de compra y ayudarte a definir estrategias de marketing. ¿Qué quieres saber?'
+  'Hola. Conozco a todos tus segmentos de clientes: qué compran, cada cuánto y cuánto gastan. Pregúntame lo que necesites para decidir tu próxima campaña.'
 
 const defaultSuggestions = [
-  '¿Qué cluster genera más ingresos?',
+  '¿Qué segmento me deja más ventas?',
   '¿Qué clientes valiosos están dejando de comprar?',
-  '¿En qué se diferencian los dos clusters más grandes?',
+  '¿En qué se diferencian mis dos segmentos más grandes?',
 ]
 
 const TOOL_LABELS = {
-  describe_cluster: 'Perfil del cluster',
-  compare_clusters: 'Comparación de clusters',
-  query_data: 'Consulta SQL',
+  describe_cluster: 'Perfil del segmento',
+  compare_clusters: 'Comparación de segmentos',
+  query_data: 'Consulta a tus datos',
   explain_customer: 'Explicación de un cliente',
   list_customers: 'Lista de clientes',
 }
@@ -48,7 +49,8 @@ function Attachments({ items }) {
   return (
     <div className="chat-attachments">
       {lists.map((a) => (
-        <a key={a.handle} className="link-button strong" href={api.resultUrl(a.handle)}>
+        <a key={a.handle} className="download-link" href={api.resultUrl(a.handle)}>
+          <Icon name="download" size={16} />
           Descargar {a.title ?? 'lista'} ({a.count} clientes)
         </a>
       ))}
@@ -56,8 +58,8 @@ function Attachments({ items }) {
   )
 }
 
-// Chat con la segmentación. `clusterId` acota la conversación al cluster seleccionado.
-export default function ChatPanel({ intro = defaultIntro, compact = false, clusterId = null, suggestions }) {
+// Chat con la segmentación. `clusterId` acota la conversación al segmento seleccionado.
+export default function ChatPanel({ intro = defaultIntro, clusterId = null, suggestions }) {
   const { clusteringId } = useSegmentation()
   const [messages, setMessages] = useState([{ role: 'assistant', text: intro }])
   const [input, setInput] = useState('')
@@ -78,7 +80,7 @@ export default function ChatPanel({ intro = defaultIntro, compact = false, clust
     if (!clusteringId) {
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', text: 'Primero carga una base de datos para que pueda responder sobre tus clientes.' },
+        { role: 'assistant', text: 'Primero carga tus ventas para que pueda responder sobre tus clientes.' },
       ])
       return
     }
@@ -103,10 +105,11 @@ export default function ChatPanel({ intro = defaultIntro, compact = false, clust
   }
 
   const chips = suggestions?.length ? suggestions : defaultSuggestions
+  const asked = messages.some((m) => m.role === 'user')
 
   return (
     <div className="chat">
-      <div className="chat-messages" ref={listRef}>
+      <div className="chat-messages" ref={listRef} aria-live="polite">
         {messages.map((message, index) => (
           <div className={`bubble ${message.role}${message.error ? ' error' : ''}`} key={index}>
             {message.role === 'assistant' && !message.error ? <Markdown text={message.text} /> : message.text}
@@ -115,16 +118,21 @@ export default function ChatPanel({ intro = defaultIntro, compact = false, clust
           </div>
         ))}
         {pending && (
-          <div className="bubble assistant typing" aria-live="polite">
+          <div className="bubble assistant typing">
+            <span className="typing-dots" aria-hidden="true">
+              <i />
+              <i />
+              <i />
+            </span>
             Analizando tus datos…
           </div>
         )}
       </div>
 
-      {(!compact || messages.length === 1) && (
+      {!asked && (
         <div className="chat-suggestions">
           {chips.map((s) => (
-            <button className="chip chip-button" key={s} onClick={() => send(s)} disabled={pending}>
+            <button className="chip-button" key={s} onClick={() => send(s)} disabled={pending}>
               {s}
             </button>
           ))}
@@ -142,11 +150,11 @@ export default function ChatPanel({ intro = defaultIntro, compact = false, clust
           type="text"
           value={input}
           onChange={(event) => setInput(event.target.value)}
-          placeholder="Pregunta sobre tus clientes…"
+          placeholder="Escribe tu pregunta…"
           aria-label="Mensaje"
         />
-        <button className="primary" type="submit" disabled={pending}>
-          Enviar
+        <button className="send-button" type="submit" aria-label="Enviar" disabled={pending || !input.trim()}>
+          <Icon name="send" size={18} />
         </button>
       </form>
     </div>

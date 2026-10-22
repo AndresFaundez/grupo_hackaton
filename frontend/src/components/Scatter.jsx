@@ -1,4 +1,11 @@
+import { useNavigate } from 'react-router-dom'
 import { useSegmentation } from '../context/Segmentation.jsx'
+
+const W = 460
+const H = 320
+const PAD = { top: 18, right: 16, bottom: 36, left: 36 }
+const gridX = [0.25, 0.5, 0.75, 1].map((t) => PAD.left + t * (W - PAD.left - PAD.right))
+const gridY = [0, 0.25, 0.5, 0.75].map((t) => PAD.top + t * (H - PAD.top - PAD.bottom))
 
 // Recorta los extremos para que unos pocos clientes no aplasten el gráfico.
 const quantile = (values, q) => {
@@ -6,15 +13,16 @@ const quantile = (values, q) => {
   return sorted[Math.min(sorted.length - 1, Math.floor(q * sorted.length))] ?? 1
 }
 
-// Gráfico de dispersión de clientes (por defecto: frecuencia de compra vs gasto).
-export default function Scatter({ highlight, onPointClick }) {
+// Mapa de clientes (por defecto: frecuencia de compra vs gasto).
+// Sin onPointClick, un clic lleva al detalle del segmento.
+export default function Scatter({ highlight, onPointClick, showLegend = true }) {
+  const navigate = useNavigate()
   const { clusters, scatter } = useSegmentation()
-  const W = 460
-  const H = 320
-  const PAD = { top: 16, right: 16, bottom: 40, left: 56 }
+  const open = (id) => (onPointClick ? onPointClick(id) : navigate(`/explorar?segmento=${id}`))
+  const isDimmed = (id) => highlight && highlight !== id
 
   const allPoints = clusters.flatMap((c) =>
-    c.points.map((p) => ({ ...p, cluster: c.id, color: c.color })),
+    c.points.map((p) => ({ ...p, cluster: c.id, color: c.color, name: c.name })),
   )
   if (!allPoints.length) return null
 
@@ -37,42 +45,70 @@ export default function Scatter({ highlight, onPointClick }) {
   const sy = (y) => H - PAD.bottom - ((clamp(fy(y), minY, maxY) - minY) / (maxY - minY)) * (H - PAD.top - PAD.bottom)
   const dense = allPoints.length > 300
 
+  const xLabel = scatter?.xLabel ?? 'Frecuencia de compra'
+  const yLabel = scatter?.yLabel ?? 'Gasto'
+
   return (
     <figure className="scatter-wrap">
       <svg
         viewBox={`0 0 ${W} ${H}`}
         className="scatter"
         role="img"
-        aria-label={`Clientes agrupados por segmento: ${scatter?.yLabel ?? 'gasto'} versus ${scatter?.xLabel ?? 'frecuencia'}`}
+        aria-label={`Mapa de clientes por segmento: ${yLabel} según ${xLabel}`}
       >
-        {/* ejes */}
+        {gridX.map((x) => (
+          <line key={`x${x}`} x1={x} x2={x} y1={PAD.top} y2={H - PAD.bottom} className="grid" />
+        ))}
+        {gridY.map((y) => (
+          <line key={`y${y}`} x1={PAD.left} x2={W - PAD.right} y1={y} y2={y} className="grid" />
+        ))}
         <line x1={PAD.left} y1={H - PAD.bottom} x2={W - PAD.right} y2={H - PAD.bottom} className="axis" />
         <line x1={PAD.left} y1={PAD.top} x2={PAD.left} y2={H - PAD.bottom} className="axis" />
-        {/* etiquetas */}
-        <text x={W - PAD.right} y={H - 12} textAnchor="end" className="axis-label">
-          {scatter?.xLabel ?? 'Frecuencia de compra'} →
+        <text x={W - PAD.right} y={H - 10} textAnchor="end" className="axis-label">
+          {xLabel} →
         </text>
-        <text x={12} y={PAD.top} className="axis-label">
-          ↑ {scatter?.yLabel ?? 'Gasto'}{logY ? ' (escala log)' : ''}
+        <text
+          x={14}
+          y={H - PAD.bottom}
+          className="axis-label"
+          transform={`rotate(-90 14 ${H - PAD.bottom})`}
+        >
+          {yLabel}
+          {logY ? ' (escala log)' : ''} →
         </text>
-        {/* puntos */}
         {allPoints.map((p, i) => {
-          const dimmed = highlight && highlight !== p.cluster
+          const dimmed = isDimmed(p.cluster)
           return (
             <circle
               key={i}
               cx={sx(p.x + jitter(i))}
               cy={sy(p.y)}
-              r={dimmed ? 2 : dense ? 3.2 : 6}
+              r={dimmed ? 2.5 : dense ? 3.2 : 6}
               fill={p.color}
-              opacity={dimmed ? 0.18 : dense ? 0.6 : 0.85}
-              className="scatter-point"
-              onClick={() => onPointClick?.(p.cluster)}
-            />
+              opacity={dimmed ? 0.18 : dense ? 0.65 : 0.9}
+              className={'scatter-point' + (dense ? ' dense' : '')}
+              onClick={() => open(p.cluster)}
+            >
+              <title>{p.name}</title>
+            </circle>
           )
         })}
       </svg>
-      <figcaption>Haz clic en un punto para explorar su grupo.</figcaption>
+      {showLegend && (
+        <figcaption className="legend">
+          {clusters.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              className={'legend-item' + (isDimmed(c.id) ? ' dim' : '')}
+              onClick={() => open(c.id)}
+            >
+              <span className="legend-dot" style={{ background: c.color }} aria-hidden="true" />
+              {c.name}
+            </button>
+          ))}
+        </figcaption>
+      )}
     </figure>
   )
 }

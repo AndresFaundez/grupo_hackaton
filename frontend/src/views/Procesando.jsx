@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import ClusterAnimation from '../components/ClusterAnimation.jsx'
+import Icon from '../components/Icon.jsx'
 import { useSegmentation } from '../context/Segmentation.jsx'
 
 const phases = [
-  'Leyendo transacciones…',
-  'Calculando métricas de recencia, frecuencia y gasto…',
-  'Agrupando clientes con similitudes de compra…',
-  'Interpretando y nombrando los clusters con IA…',
+  'Leyendo tus ventas',
+  'Midiendo cuánto gasta y cada cuánto compra cada cliente',
+  'Juntando a los clientes que compran parecido',
+  'Poniéndole nombre a cada grupo y buscando ideas de campaña',
 ]
 
 export default function Procesando() {
@@ -50,52 +51,88 @@ export default function Procesando() {
 
   return (
     <section className="processing">
-      <h2 className="sr-only">Procesamiento</h2>
+      <header className="page-head center">
+        <span className={'eyebrow' + (failed ? ' danger' : '')}>
+          <Icon name={failed ? 'alert' : 'sparkle'} size={14} />{' '}
+          {done ? 'Análisis completo' : failed ? 'Algo salió mal' : 'Analizando'}
+        </span>
+        <h1 className="display">
+          {done ? (
+            <>Tus clientes ya tienen <em>grupo</em></>
+          ) : failed ? (
+            <>No pudimos analizar <em>tus datos</em></>
+          ) : (
+            <>Estamos conociendo a <em>tus clientes</em></>
+          )}
+        </h1>
+        <p className="lead">
+          {failed
+            ? 'Revisa el detalle de abajo y vuelve a intentarlo, o prueba con otro archivo.'
+            : 'Cada punto es un cliente. Los que compran de forma parecida se van juntando hasta formar un segmento.'}
+        </p>
+      </header>
+
       <div className="card processing-card">
-        <div className="processing-spinner" aria-hidden="true">
-          {done ? '✓' : failed ? '!' : '…'}
-        </div>
-        <h3>{done ? 'Segmentación lista' : failed ? 'No pudimos procesar tus datos' : 'Procesando tus datos'}</h3>
         {failed ? (
-          <p className="error-box">{error}</p>
+          <div className="error-box">
+            <Icon name="alert" size={18} />
+            <span>{error}</span>
+          </div>
         ) : (
           <div className="anim-stage">
             <ClusterAnimation />
           </div>
         )}
-        <ul className="phase-list">
-          {phases.map((label, index) => (
-            <li
-              key={label}
-              className={
+
+        <div className="processing-body">
+          <ul className="phase-list">
+            {phases.map((label, index) => {
+              const state =
                 index < phase ? 'done' : index === phase && !failed ? 'current' : 'pending'
-              }
-            >
-              {label}
-            </li>
-          ))}
-        </ul>
-        <div className="bar" aria-hidden="true">
-          <span
-            style={{ width: `${done ? 100 : progress}%`, background: failed ? '#e04f2f' : '#3538cd' }}
-          />
-        </div>
-        <div className="actions center">
+              return (
+                <li key={label} className={state}>
+                  <span className="phase-mark" aria-hidden="true">
+                    {state === 'done' && <Icon name="check" size={12} strokeWidth={2.6} />}
+                  </span>
+                  {label}
+                </li>
+              )
+            })}
+          </ul>
+
+          <div
+            className={'progress' + (failed ? ' failed' : '')}
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={done ? 100 : progress}
+            aria-label="Avance del análisis"
+          >
+            <span style={{ width: `${done ? 100 : Math.max(progress, 6)}%` }} />
+          </div>
+
           {failed ? (
-            <>
-              <button className="secondary" onClick={() => navigate('/')}>Volver</button>
-              <button className="primary" onClick={process}>Reintentar</button>
-            </>
+            <div className="button-row">
+              <button className="secondary large" onClick={() => navigate('/')}>
+                <Icon name="arrowLeft" size={18} /> Volver
+              </button>
+              <button className="primary large" onClick={process}>
+                Reintentar
+              </button>
+            </div>
           ) : (
-            <button className="primary" disabled={!done} onClick={() => navigate('/clusters')}>
-              {done ? 'Ver mis clusters' : 'Procesando…'}
+            <button className="primary large" disabled={!done} onClick={() => navigate('/clusters')}>
+              {done ? (
+                <>Ver mis segmentos <Icon name="arrowRight" size={18} /></>
+              ) : (
+                'Analizando…'
+              )}
             </button>
           )}
         </div>
-        <p className="fineprint">
-          El clustering y la interpretación con IA corren en el backend; suele tardar entre 10 y 20 segundos.
-        </p>
       </div>
+
+      <p className="fineprint">Suele tardar entre 10 y 20 segundos.</p>
     </section>
   )
 }
