@@ -1,0 +1,37 @@
+from functools import lru_cache
+from pathlib import Path
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    # LLM (Gemini). Vertex AI con créditos GCP, o API key de AI Studio como alternativa.
+    google_genai_use_vertexai: bool = True
+    google_cloud_project: str | None = None
+    google_cloud_location: str = "global"
+    gemini_api_key: str | None = None
+    gemini_model: str = "gemini-2.5-flash"
+
+    workspace_dir: Path = Path("workspace")
+
+    # Clustering: k se elige por silhouette dentro de este rango.
+    # Mínimo 3 porque 2 segmentos rara vez sirven para marketing.
+    k_min: int = 3
+    k_max: int = 8
+
+    # Agente
+    max_query_rows: int = 50
+    max_agent_steps: int = 6
+
+    @property
+    def llm_configured(self) -> bool:
+        if self.google_genai_use_vertexai:
+            return bool(self.google_cloud_project)
+        return bool(self.gemini_api_key)
+
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
