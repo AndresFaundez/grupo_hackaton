@@ -1,25 +1,30 @@
+import { NavLink, Routes, Route, Navigate, BrowserRouter } from 'react-router-dom'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Layout from './Layout.jsx'
-import Upload from './views/Upload.jsx'
-import Dashboard from './views/Dashboard.jsx'
+import { ClusterNamesProvider } from './context/ClusterNames.jsx'
+import Datos from './views/Datos.jsx'
+import Procesando from './views/Procesando.jsx'
 import Clusters from './views/Clusters.jsx'
-import Chat from './views/Chat.jsx'
+import Explorar from './views/Explorar.jsx'
+import Campana from './views/Campana.jsx'
 import './styles.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <Routes>
-        <Route element={<Layout />}>
-          <Route index element={<Navigate to="/upload" replace />} />
-          <Route path="/upload" element={<Upload />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/clusters" element={<Clusters />} />
-          <Route path="/chat" element={<Chat />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <ClusterNamesProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<Layout />}>
+            <Route index element={<Datos />} />
+            <Route path="/procesando" element={<Procesando />} />
+            <Route path="/clusters" element={<Clusters />} />
+            <Route path="/explorar" element={<Explorar />} />
+            <Route path="/campana" element={<Campana />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </ClusterNamesProvider>
   </React.StrictMode>,
 )

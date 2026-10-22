@@ -2,99 +2,149 @@
 // NO es la capa de API: cuando el backend publique su contrato, esta fuente
 // se reemplaza por llamadas reales en src/api/ y este archivo desaparece.
 
-export const summary = {
-  totalCustomers: 8450,
-  totalSales: 412_600_000,
+export const dataset = {
+  fileName: 'ventas_tienda_aurora_2025.csv',
+  totalCustomers: 4860,
+  totalSales: 312_400_000,
   clusterCount: 4,
 }
 
+// Puntos del gráfico de dispersión (frecuencia compras/año, gasto promedio $).
+const pts = (base, spread, n) =>
+  Array.from({ length: n }, (_, i) => {
+    const a = (i / n) * Math.PI * 2
+    const jx = ((i * 7919) % 97) / 97 - 0.5
+    const jy = ((i * 104729) % 89) / 89 - 0.5
+    return {
+      x: Math.max(0.2, base.x + Math.cos(a) * spread.x + jx * spread.x),
+      y: Math.max(2000, base.y + Math.sin(a) * spread.y + jy * spread.y),
+    }
+  })
+
 export const clusters = [
   {
-    id: 1,
-    name: 'Premium frecuente',
+    id: 'leales',
+    name: 'Clientes leales',
     color: '#3538cd',
-    characterization: ['Alta frecuencia', 'Ticket alto', 'Marcas premium'],
+    characterization: ['Frecuencia alta', 'Ticket medio', 'Recurrente'],
     description:
-      'Clientes leales que compran varias veces al mes, con ticket promedio alto y clara preferencia por productos de gama alta. Son el segmento que sostiene la mayor parte de los ingresos.',
+      'Compran con regularidad y responden bien a novedades de la marca.',
+    traits: ['Compra cada 28 días', '5,2 pedidos al año', 'Prefiere hogar y cocina'],
+    customers: 1340,
+    share: 0.276,
+    avgSpend: 98500,
+    frequency: '5,2 compras al año',
+    frequencyPerYear: 5.2,
+    topProducts: ['Hogar y cocina', 'Abarrotes', 'Limpieza'],
     representativeCustomer: {
       name: 'María Fernández',
       age: 42,
-      profile: 'Directora de marketing. Compra online cada semana, valora la calidad sobre el precio y responde bien a preventa personalizada.',
+      profile:
+        'Compra online cada semana, valora la calidad sobre el precio y responde bien a preventa personalizada.',
     },
-    customers: 1240,
-    sales: 186_400_000,
-    frequency: '4,2 compras/mes',
-    topProducts: ['Vinos reserva', 'Quesos gourmet', 'Café de especialidad'],
+    suggestedObjective: 'fidelizar',
     strategies: [
-      'Programa de fidelización con recompensas por antigüedad',
-      'Acceso anticipado a lanzamientos y ediciones limitadas',
-      'Atención personalizada vía ejecutivo de cuenta',
+      'Programa de recompensas por antigüedad',
+      'Acceso anticipado a lanzamientos',
+      'Sugerencias de reposición según su ciclo',
     ],
+    points: pts({ x: 5.2, y: 98500 }, { x: 1.1, y: 14000 }, 14),
   },
   {
-    id: 2,
-    name: 'Oportunista puntual',
-    color: '#e04f2f',
-    characterization: ['Baja frecuencia', 'Sensible a ofertas', 'Ticket variable'],
+    id: 'alto-valor',
+    name: 'Alto valor',
+    color: '#0e9384',
+    characterization: ['Ticket alto', 'Pocos clientes', 'Premium'],
     description:
-      'Clientes que aparecen en promociones y fechas claves (Black Friday, Navidad). Compran poco el resto del año y su ticket depende del descuento disponible.',
+      'Pocos clientes con tickets altos que concentran gran parte de los ingresos.',
+    traits: ['Gasta 4x el promedio', '2,8 pedidos al año', 'Prefiere marcas premium'],
+    customers: 520,
+    share: 0.107,
+    avgSpend: 342000,
+    frequency: '2,8 compras al año',
+    frequencyPerYear: 2.8,
+    topProducts: ['Vinos reserva', 'Quesos gourmet', 'Café de especialidad'],
     representativeCustomer: {
       name: 'Ignacio Rojas',
-      age: 28,
-      profile: 'Estudiante de postgrado. Espera descuentos para comprar en volumen y compara precios entre tiendas antes de decidir.',
+      age: 47,
+      profile:
+        'Directivo. Compra poco pero muy caro, prioriza exclusividad y atención personalizada.',
     },
-    customers: 3210,
-    sales: 98_700_000,
-    frequency: '1,1 compras/mes',
-    topProducts: ['Electrónica en oferta', 'Packs promocionales', 'Ropa de temporada'],
+    suggestedObjective: 'ticket',
     strategies: [
-      'Campañas de reactivación con cupones de expiración corta',
-      'Ofertas flash segmentadas por categoría de interés',
-      'Envío gratis condicionado a monto mínimo para subir el ticket',
+      'Atención personalizada vía ejecutivo de cuenta',
+      'Ediciones limitadas y catálogo premium',
+      'Invitaciones a eventos exclusivos',
     ],
+    points: pts({ x: 2.8, y: 342000 }, { x: 0.9, y: 52000 }, 9),
   },
   {
-    id: 3,
-    name: 'Familiar planificador',
-    color: '#0e9384',
-    characterization: ['Compra regular', 'Listas repetidas', 'Precio estable'],
+    id: 'reactivar',
+    name: 'Clientes por reactivar',
+    color: '#e04f2f',
+    characterization: ['Sin compras recientes', 'Riesgo de fuga', 'Eran frecuentes'],
     description:
-      'Hogares que reponen productos de uso cotidiano en ciclos fijos. Repiten listas de compra, priorizan precio-conveniencia y valoran la eficiencia del envío.',
+      'Compraban con cierta regularidad, pero llevan meses sin volver a comprar.',
+    traits: ['Sin compras hace 4 meses', 'Compraba cada 40 días', 'Sensible a ofertas'],
+    customers: 1610,
+    share: 0.331,
+    avgSpend: 41500,
+    frequency: '2,1 compras al año',
+    frequencyPerYear: 2.1,
+    topProducts: ['Ropa de temporada', 'Electrónica en oferta', 'Packs promocionales'],
     representativeCustomer: {
       name: 'Carolina Muñoz',
       age: 37,
-      profile: 'Madre de tres hijos. Planifica la compra semanal del hogar, suscribe productos de aseo y compara por unidad de medida.',
+      profile:
+        'Compraba en cada campaña, pero la última experiencia de envío la decepcionó.',
     },
-    customers: 2450,
-    sales: 84_200_000,
-    frequency: '2,6 compras/mes',
-    topProducts: ['Abarrotes', 'Productos de aseo', 'Pan y lácteos'],
+    suggestedObjective: 'reactivar',
     strategies: [
-      'Suscripciones con descuento para compra recurrente',
-      'Sugerencias de reposición basadas en su ciclo de compra',
-      'Combos de despensa con precio fijo mensual',
+      'Cupón de bienvenida de vuelta con expiración corta',
+      'Encuesta breve para detectar la causa de fuga',
+      'Oferta personalizada sobre su última categoría comprada',
     ],
+    points: pts({ x: 2.1, y: 41500 }, { x: 0.8, y: 9000 }, 12),
   },
   {
-    id: 4,
-    name: 'Explorador de nicho',
+    id: 'ocasionales',
+    name: 'Compradores ocasionales',
     color: '#b54708',
-    characterization: ['Intereses específicos', 'Prueba productos', 'Ticket medio'],
+    characterization: ['Baja frecuencia', 'Sensible a ofertas', 'Ticket variable'],
     description:
-      'Clientes que exploran categorías particulares (hobbies, salud, tecnología) y prueban novedades. Compran por interés más que por necesidad.',
+      'Aparecen en promociones y fechas claves; compran poco el resto del año.',
+    traits: ['Solo en eventos y ofertas', '1,2 pedidos al año', 'Compara precios'],
+    customers: 1390,
+    share: 0.286,
+    avgSpend: 28900,
+    frequency: '1,2 compras al año',
+    frequencyPerYear: 1.2,
+    topProducts: ['Electrónica en oferta', 'Packs promocionales', 'Regalos'],
     representativeCustomer: {
       name: 'Diego Herrera',
-      age: 33,
-      profile: 'Desarrollador y aficionado al running. Investiga antes de comprar, sigue reseñas especializadas y prueba marcas nuevas.',
+      age: 28,
+      profile:
+        'Espera descuentos para comprar en volumen y compara precios entre tiendas.',
     },
-    customers: 1550,
-    sales: 43_300_000,
-    frequency: '1,8 compras/mes',
-    topProducts: ['Suplementos deportivos', 'Gadgets', 'Libros técnicos'],
+    suggestedObjective: 'recompra',
     strategies: [
-      'Contenido y guías de compra para categorías de nicho',
-      'Programa de prueba de novedades con descuento de early adopter',
-      'Colaboraciones con micro-influencers del rubro',
+      'Ofertas flash segmentadas por categoría de interés',
+      'Envío gratis condicionado a monto mínimo',
+      'Campañas de temporada con recordatorio previo',
     ],
+    points: pts({ x: 1.2, y: 28900 }, { x: 0.5, y: 7000 }, 11),
   },
+]
+
+export const objectives = [
+  { id: 'recompra', label: 'Impulsar recompra', description: 'Que vuelvan a comprar pronto' },
+  { id: 'fidelizar', label: 'Fidelizar', description: 'Premiar y retener' },
+  { id: 'reactivar', label: 'Reactivar', description: 'Recuperar clientes inactivos' },
+  { id: 'ticket', label: 'Aumentar ticket', description: 'Venta cruzada o premium' },
+]
+
+export const channels = [
+  { id: 'email', label: 'Email' },
+  { id: 'whatsapp', label: 'WhatsApp' },
+  { id: 'sms', label: 'SMS' },
 ]

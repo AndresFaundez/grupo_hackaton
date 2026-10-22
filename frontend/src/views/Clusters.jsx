@@ -1,114 +1,56 @@
-import { useState } from 'react'
-import { clusters } from '../data/demoClusters.js'
-import { formatCLP, formatNumber } from '../lib/format.js'
-import ChatPanel from '../components/ChatPanel.jsx'
+import { Link } from 'react-router-dom'
+import { clusters, dataset } from '../data/demoClusters.js'
+import { formatCLP, formatNumber, formatPercent } from '../lib/format.js'
+import { useClusterNames } from '../context/ClusterNames.jsx'
+import EditableName from '../components/EditableName.jsx'
+import Scatter from '../components/Scatter.jsx'
 
 export default function Clusters() {
-  const [selectedId, setSelectedId] = useState(clusters[0].id)
-  const selected = clusters.find((c) => c.id === selectedId)
+  const { names, rename } = useClusterNames()
 
   return (
     <section>
-      <h2>Clusters</h2>
-      <p className="lead">
-        Los clusters más importantes de la segmentación. Selecciona uno para
-        ver su detalle y conversa con la IA sobre él.
+      <h2>Tus clusters</h2>
+      <p className="cluster-summary">
+        <strong>{dataset.clusterCount}</strong> grupos encontrados en{' '}
+        <strong>{formatNumber(dataset.totalCustomers)}</strong> clientes ·{' '}
+        {dataset.fileName}
+      </p>
+      <p className="muted small">
+        Nombres propuestos por la IA según las métricas · editables
       </p>
 
-      {/* Zona grande: tarjetas de clusters */}
-      <div className="cluster-row">
-        {clusters.map((cluster) => (
-          <button
-            key={cluster.id}
-            className={
-              cluster.id === selectedId
-                ? 'card cluster-pick selected'
-                : 'card cluster-pick'
-            }
-            onClick={() => setSelectedId(cluster.id)}
-          >
-            <span
-              className="cluster-dot"
-              style={{ background: cluster.color }}
-              aria-hidden="true"
-            />
-            <span className="cluster-pick-body">
-              <strong>{cluster.name}</strong>
-              <span className="muted">
-                {formatNumber(cluster.customers)} clientes ·{' '}
-                {formatCLP(cluster.sales)}
-              </span>
-            </span>
-          </button>
-        ))}
+      <div className="card scatter-card">
+        <Scatter />
       </div>
 
-      {/* Paneles inferiores: detalle (izq) + chat (der) */}
-      <div className="workspace">
-        <article className="card detail">
-          <div className="cluster-head">
-            <span
-              className="cluster-dot"
-              style={{ background: selected.color }}
-              aria-hidden="true"
-            />
-            <h3>{selected.name}</h3>
-          </div>
-          <div className="badges">
-            {selected.characterization.map((tag) => (
-              <span className="badge" key={tag}>{tag}</span>
-            ))}
-          </div>
-
-          <p className="cluster-desc">{selected.description}</p>
-
-          <div className="detail-grid">
-            <div className="detail-item">
-              <h4>Cliente más representativo</h4>
-              <p>
-                <strong>{selected.representativeCustomer.name}</strong>,{' '}
-                {selected.representativeCustomer.age} años
-              </p>
-              <p className="muted">{selected.representativeCustomer.profile}</p>
+      <div className="cluster-grid">
+        {clusters.map((cluster) => (
+          <article className="card cluster-card" key={cluster.id}>
+            <div className="cluster-head">
+              <span className="cluster-dot" style={{ background: cluster.color }} aria-hidden="true" />
+              <EditableName name={names[cluster.id]} onRename={(name) => rename(cluster.id, name)} />
             </div>
-            <div className="detail-item">
-              <h4>Tamaño de ventas</h4>
-              <p className="stat-value">{formatCLP(selected.sales)}</p>
-              <p className="muted">
-                {formatNumber(selected.customers)} clientes en el cluster
-              </p>
+            <p className="cluster-desc">{cluster.description}</p>
+            <p className="cluster-size">
+              {formatNumber(cluster.customers)} clientes ·{' '}
+              {formatPercent(cluster.share)} de la base
+            </p>
+            <div className="cluster-stats">
+              <div>
+                <span className="stat-label">Gasto promedio</span>
+                <span className="stat-value">{formatCLP(cluster.avgSpend)}</span>
+              </div>
+              <div>
+                <span className="stat-label">Frecuencia</span>
+                <span className="stat-value">{cluster.frequency}</span>
+              </div>
             </div>
-            <div className="detail-item">
-              <h4>Frecuencia de compra</h4>
-              <p className="stat-value">{selected.frequency}</p>
-            </div>
-            <div className="detail-item">
-              <h4>Qué compran en general</h4>
-              <ul className="chip-list">
-                {selected.topProducts.map((product) => (
-                  <li className="chip" key={product}>{product}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          <div className="detail-item">
-            <h4>Estrategias de marketing sugeridas</h4>
-            <ul className="strategy-list">
-              {selected.strategies.map((strategy) => (
-                <li key={strategy}>{strategy}</li>
-              ))}
-            </ul>
-          </div>
-        </article>
-
-        <div className="chat-dock">
-          <div className="chat-dock-title">Chat IA sobre los clusters</div>
-          <ChatPanel
-            compact
-            intro={`Pregúntame por el cluster "${selected.name}" o por cualquier otro segmento. Puedo darte estrategias y más información.`}
-          />
-        </div>
+            <Link className="link-button strong" to={`/explorar?segmento=${cluster.id}`}>
+              Explorar segmento →
+            </Link>
+          </article>
+        ))}
       </div>
     </section>
   )
