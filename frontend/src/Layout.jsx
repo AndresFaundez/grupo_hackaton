@@ -26,7 +26,9 @@ export default function Layout() {
     return () => window.removeEventListener('keydown', onKey)
   }, [chatOpen])
 
-  useEffect(() => window.scrollTo({ top: 0 }), [pathname])
+  useEffect(() => {
+    window.scrollTo({ top: 0 })
+  }, [pathname])
 
   return (
     <div className="app">
