@@ -126,7 +126,9 @@ def test_naming_with_llm_and_fallbacks(fitted):
     profiles = profile_clusters(fs.customers, t.T, fit.labels, fs.feature_cols, fs.attribute_cols, fs.monetary_col)
 
     labels, source = label_clusters(profiles, {}, fs.descriptions, None)
-    assert source == "fallback" and labels[0].name == "Cluster 1"
+    names = [label.name for label in labels]
+    assert source == "fallback" and len(set(names)) == len(names)
+    assert not any(name.startswith("Cluster ") for name in names)
     assert all(label.tags and len(label.strategies) == 3 for label in labels)
     # El cluster de mayor recencia (inactivos) se sugiere reactivar.
     inactive = max(profiles, key=lambda p: next(f.z for f in p.features if f.feature == "recency_days"))

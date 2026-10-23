@@ -30,6 +30,19 @@ def new_id(prefix: str) -> str:
     return f"{prefix}_{uuid.uuid4().hex[:10]}"
 
 
+# Tope de objetos en memoria: al pasarlo se descartan los más antiguos, para que el
+# servidor no crezca sin límite si queda corriendo y se suben muchos archivos.
+MAX_DATASETS = 20
+MAX_CLUSTERINGS = 30
+MAX_RESULTS = 200
+MAX_SESSIONS = 200
+
+
+def _evict(items: dict, limit: int) -> None:
+    while len(items) > limit:
+        items.pop(next(iter(items)))
+
+
 @dataclass
 class DatasetRecord:
     info: DatasetInfo
@@ -71,6 +84,7 @@ class Store:
     def add_dataset(self, record: DatasetRecord) -> None:
         with self._lock:
             self.datasets[record.info.dataset_id] = record
+            _evict(self.datasets, MAX_DATASETS)
         self._persist_dataset(record)
 
     def get_dataset(self, dataset_id: str) -> DatasetRecord | None:
@@ -84,6 +98,7 @@ class Store:
     def add_clustering(self, record: ClusteringRecord) -> None:
         with self._lock:
             self.clusterings[record.result.clustering_id] = record
+            _evict(self.clusterings, MAX_CLUSTERINGS)
         self.save_clustering(record)
 
     def save_clustering(self, record: ClusteringRecord) -> None:
@@ -99,6 +114,7 @@ class Store:
         handle = new_id("res")
         with self._lock:
             self.results[handle] = df
+            _evict(self.results, MAX_RESULTS)
         return handle
 
     def get_result(self, handle: str) -> pd.DataFrame | None:
@@ -112,6 +128,7 @@ class Store:
     def add_session(self, session: ChatSession) -> None:
         with self._lock:
             self.sessions[session.session_id] = session
+            _evict(self.sessions, MAX_SESSIONS)
 
     # --- persistencia best-effort ---
 
@@ -131,6 +148,7 @@ class Store:
     def _write_json(path: Path, payload: Any) -> None:
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, default=str))
+            # utf-8 explícito: en Windows el default (cp1252) falla con emojis y otros caracteres.
+            path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
         except Exception:
             log.warning("No se pudo escribir %s", path, exc_info=True)

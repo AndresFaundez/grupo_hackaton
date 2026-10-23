@@ -60,8 +60,9 @@ function Attachments({ items }) {
 
 // Chat con la segmentación. `clusterId` acota la conversación al segmento seleccionado.
 export default function ChatPanel({ intro = defaultIntro, clusterId = null, suggestions }) {
-  const { clusteringId } = useSegmentation()
+  const { clusteringId, aiEnabled } = useSegmentation()
   const [messages, setMessages] = useState([{ role: 'assistant', text: intro }])
+  const disabled = aiEnabled === false
   const [input, setInput] = useState('')
   const [sessionId, setSessionId] = useState(null)
   const [pending, setPending] = useState(false)
@@ -129,7 +130,17 @@ export default function ChatPanel({ intro = defaultIntro, clusterId = null, sugg
         )}
       </div>
 
-      {!asked && (
+      {disabled && (
+        <p className="chat-notice">
+          <Icon name="alert" size={16} />
+          <span>
+            El asistente necesita IA. Pega una clave gratuita de Gemini en <code>backend/.env</code>{' '}
+            (<code>GEMINI_API_KEY</code>) y vuelve a abrir la página con «Abrir hackaton».
+          </span>
+        </p>
+      )}
+
+      {!asked && !disabled && (
         <div className="chat-suggestions">
           {chips.map((s) => (
             <button className="chip-button" key={s} onClick={() => send(s)} disabled={pending}>
@@ -150,10 +161,11 @@ export default function ChatPanel({ intro = defaultIntro, clusterId = null, sugg
           type="text"
           value={input}
           onChange={(event) => setInput(event.target.value)}
-          placeholder="Escribe tu pregunta…"
+          placeholder={disabled ? 'Asistente desactivado' : 'Escribe tu pregunta…'}
           aria-label="Mensaje"
+          disabled={disabled}
         />
-        <button className="send-button" type="submit" aria-label="Enviar" disabled={pending || !input.trim()}>
+        <button className="send-button" type="submit" aria-label="Enviar" disabled={disabled || pending || !input.trim()}>
           <Icon name="send" size={18} />
         </button>
       </form>

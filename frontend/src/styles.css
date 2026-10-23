@@ -1935,6 +1935,25 @@ h4 {
   flex-wrap: wrap;
 }
 
+.chat-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-line);
+  color: var(--ink-2);
+  font-size: 0.86rem;
+}
+
+.chat-notice svg {
+  color: var(--danger);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
 .chip-button {
   display: inline-flex;
   align-items: center;
@@ -2048,6 +2067,11 @@ h4 {
   justify-content: flex-end;
   z-index: 40;
   animation: fadeIn 0.25s ease both;
+}
+
+/* El cajón queda montado al cerrarse para conservar la conversación. */
+.chat-drawer-backdrop[hidden] {
+  display: none;
 }
 
 .chat-drawer {

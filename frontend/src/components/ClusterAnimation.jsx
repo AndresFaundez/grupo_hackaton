@@ -1,5 +1,3 @@
-import { clusterColor } from '../api/adapter.js'
-
 const W = 800
 const H = 400
 const PAD = 40
@@ -7,15 +5,15 @@ const PAD = 40
 // Animación decorativa: los clientes "caen" al lienzo y se agrupan en
 // segmentos que emergen con su halo. No son datos reales.
 const groups = [
-  { x: 0.25, y: 0.7, n: 14 },
-  { x: 0.72, y: 0.25, n: 9 },
-  { x: 0.6, y: 0.68, n: 12 },
-  { x: 0.2, y: 0.3, n: 11 },
+  { x: 0.25, y: 0.7, n: 14, color: '#16a34a' }, // verde
+  { x: 0.72, y: 0.25, n: 9, color: '#eab308' }, // amarillo
+  { x: 0.6, y: 0.68, n: 12, color: '#dc2626' }, // rojo
+  { x: 0.2, y: 0.3, n: 11, color: '#2563eb' }, // azul
 ]
 
 const centers = groups.map((g, i) => ({
   id: i,
-  color: clusterColor(i),
+  color: g.color,
   x: PAD + g.x * (W - 2 * PAD),
   y: PAD + g.y * (H - 2 * PAD),
   label: `Grupo ${i + 1}`,

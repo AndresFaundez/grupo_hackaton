@@ -1,14 +1,16 @@
+import logging
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Response
 
 from app.agent.llm import LLMError
 from app.agent.tools import dataframe_payload
-from app.core.campaign import draft_campaign
+from app.core.campaign import draft_campaign, template_campaign
 from app.models import CampaignDraft, CampaignDraftRequest, ClusteringResult, ClusterRename, ClusterSummary
 from app.services import Services, get_services
 
 router = APIRouter(tags=["clusterings"])
+log = logging.getLogger(__name__)
 
 
 def _table_response(df, name: str, format: str):
@@ -63,11 +65,12 @@ def campaign_draft(
 ) -> CampaignDraft:
     summary = services.cluster(clustering_id, cluster_id)
     if services.llm is None:
-        raise HTTPException(503, "El LLM no está configurado (revisa GOOGLE_CLOUD_PROJECT en .env)")
+        return template_campaign(summary, req)
     try:
         return draft_campaign(summary, req, services.llm)
-    except LLMError as e:
-        raise HTTPException(502, str(e)) from e
+    except LLMError:
+        log.warning("Borrador con LLM falló; uso plantilla", exc_info=True)
+        return template_campaign(summary, req)
 
 
 @router.get("/results/{handle}")
