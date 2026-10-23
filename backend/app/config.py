@@ -33,10 +33,15 @@ class Settings(BaseSettings):
     max_agent_steps: int = 6
 
     @property
+    def use_api_key(self) -> bool:
+        """Con GEMINI_API_KEY (AI Studio) se usa la clave aunque Vertex esté activado: es lo más fácil de configurar."""
+        return bool(self.gemini_api_key) or not self.google_genai_use_vertexai
+
+    @property
     def llm_configured(self) -> bool:
-        if self.google_genai_use_vertexai:
-            return bool(self.google_cloud_project)
-        return bool(self.gemini_api_key)
+        if self.use_api_key:
+            return bool(self.gemini_api_key)
+        return bool(self.google_cloud_project)
 
 
 @lru_cache

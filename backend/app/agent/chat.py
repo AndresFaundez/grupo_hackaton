@@ -29,7 +29,9 @@ class ChatService:
 
     def chat(self, record: ClusteringRecord, req: ChatRequest) -> ChatResponse:
         if self.llm is None:
-            raise ChatUnavailable("El LLM no está configurado (revisa GOOGLE_CLOUD_PROJECT en .env)")
+            raise ChatUnavailable(
+                "El asistente de IA no está activado. Agrega GEMINI_API_KEY en backend/.env y reinicia el backend."
+            )
 
         persona_id = self._persona_cluster(record, req)
         session = self._session(record, req, persona_id)

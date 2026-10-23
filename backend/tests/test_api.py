@@ -88,7 +88,43 @@ def test_chat_returns_503_without_llm(tmp_path, synthetic_csv):
     result = client.post(f"/datasets/{info['dataset_id']}/clusterings").json()
     assert result["labels_source"] == "fallback"
     r = client.post(f"/clusterings/{result['clustering_id']}/chat", json={"message": "hola"})
-    assert r.status_code == 503
+    assert r.status_code == 503 and "GEMINI_API_KEY" in r.json()["detail"]
+
+
+def test_campaign_template_without_llm(tmp_path):
+    client = TestClient(create_app(Settings(workspace_dir=tmp_path), llm=None))
+    info = client.post("/datasets/sample").json()
+    cid = client.post(f"/datasets/{info['dataset_id']}/clusterings", json={}).json()["clustering_id"]
+    url = f"/clusterings/{cid}/clusters/0/campaign-draft"
+
+    sms = client.post(url, json={"objective": "reactivar", "channel": "sms"})
+    assert sms.status_code == 200, sms.text
+    sms = sms.json()
+    assert "[Nombre]" in sms["message"] and len(sms["message"]) <= 160 and sms["subject"] is None
+
+    again = client.post(url, json={"objective": "reactivar", "channel": "sms", "previous_message": sms["message"]}).json()
+    assert again["message"] != sms["message"]
+
+    email = client.post(url, json={"objective": "ticket", "channel": "email"}).json()
+    assert email["subject"] and "{" not in email["message"] + email["subject"]
+
+
+def test_gemini_api_key_takes_precedence():
+    assert Settings(gemini_api_key="k", google_cloud_project=None).llm_configured
+    assert Settings(gemini_api_key="k").use_api_key
+    assert not Settings(gemini_api_key=None, google_cloud_project=None).llm_configured
+    assert not Settings(gemini_api_key=None, google_cloud_project="p").use_api_key
+
+
+def test_store_evicts_oldest(tmp_path):
+    import pandas as pd
+
+    from app.store import MAX_RESULTS, Store
+
+    store = Store(tmp_path)
+    handles = [store.add_result(pd.DataFrame()) for _ in range(MAX_RESULTS + 5)]
+    assert len(store.results) == MAX_RESULTS
+    assert store.get_result(handles[0]) is None and store.get_result(handles[-1]) is not None
 
 
 def test_sample_rename_audience_and_campaign(client, llm):

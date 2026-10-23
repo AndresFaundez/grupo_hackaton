@@ -16,7 +16,7 @@ export default function Layout() {
   const [chatOpen, setChatOpen] = useState(false)
   const { pathname } = useLocation()
   const current = steps.findIndex((s) => s.to === pathname)
-  const { dataset, status } = useSegmentation()
+  const { dataset, status, clusteringId } = useSegmentation()
   const badge = dataset ? dataset.fileName : status === 'processing' ? 'Analizando…' : null
 
   useEffect(() => {
@@ -84,37 +84,37 @@ export default function Layout() {
         <Outlet />
       </main>
 
-      {chatOpen && (
-        <div className="chat-drawer-backdrop" onClick={() => setChatOpen(false)}>
-          <aside
-            className="chat-drawer"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Asistente IA"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="chat-drawer-head">
-              <span className="ai-avatar" aria-hidden="true">
-                <Icon name="sparkle" size={18} />
+      {/* Siempre montado (oculto con `hidden`) para no perder la conversación al cerrar. */}
+      <div className="chat-drawer-backdrop" hidden={!chatOpen} onClick={() => setChatOpen(false)}>
+        <aside
+          className="chat-drawer"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Asistente IA"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <div className="chat-drawer-head">
+            <span className="ai-avatar" aria-hidden="true">
+              <Icon name="sparkle" size={18} />
+            </span>
+            <div>
+              <strong>Asistente IA</strong>
+              <span className="muted small d-block">
+                Conoce tus segmentos y te ayuda a decidir
               </span>
-              <div>
-                <strong>Asistente IA</strong>
-                <span className="muted small d-block">
-                  Conoce tus segmentos y te ayuda a decidir
-                </span>
-              </div>
-              <button
-                className="icon-button"
-                onClick={() => setChatOpen(false)}
-                aria-label="Cerrar asistente"
-              >
-                <Icon name="close" size={20} />
-              </button>
             </div>
-            <ChatPanel />
-          </aside>
-        </div>
-      )}
+            <button
+              className="icon-button"
+              onClick={() => setChatOpen(false)}
+              aria-label="Cerrar asistente"
+            >
+              <Icon name="close" size={20} />
+            </button>
+          </div>
+          {/* key: con una segmentación nueva, la conversación empieza de cero. */}
+          <ChatPanel key={clusteringId ?? 'none'} />
+        </aside>
+      </div>
     </div>
   )
 }

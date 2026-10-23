@@ -29,7 +29,16 @@ export function SegmentationProvider({ children }) {
   const [step, setStep] = useState(0) // 0: subiendo y leyendo, 1: clusterizando y nombrando
   const [error, setError] = useState(null)
   const [segmentation, setSegmentation] = useState(null)
+  const [aiEnabled, setAiEnabled] = useState(null) // null mientras no se sabe
   const inFlight = useRef(false)
+
+  // Si el backend no tiene IA configurada, el chat lo avisa en vez de fallar al preguntar.
+  useEffect(() => {
+    api
+      .health()
+      .then((h) => setAiEnabled(Boolean(h.llm)))
+      .catch(() => setAiEnabled(null))
+  }, [])
 
   // Al recargar la página, recupera la última segmentación si el backend la sigue teniendo.
   useEffect(() => {
@@ -96,6 +105,7 @@ export function SegmentationProvider({ children }) {
       status,
       step,
       error,
+      aiEnabled,
       clusteringId: segmentation?.clusteringId ?? null,
       dataset: segmentation?.dataset ?? null,
       scatter: segmentation?.scatter ?? null,
@@ -104,7 +114,7 @@ export function SegmentationProvider({ children }) {
       process,
       rename,
     }),
-    [source, status, step, error, segmentation, start, process, rename],
+    [source, status, step, error, aiEnabled, segmentation, start, process, rename],
   )
 
   return <SegmentationContext.Provider value={value}>{children}</SegmentationContext.Provider>

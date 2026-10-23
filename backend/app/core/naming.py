@@ -74,6 +74,7 @@ def label_clusters(
 ) -> tuple[list[ClusterLabel], str]:
     """Devuelve (etiquetas, origen) donde origen es "llm" o "fallback"."""
     fallback = [fallback_label(p) for p in profiles]
+    _dedupe_names(fallback)
     if llm is None:
         return fallback, "fallback"
 
@@ -112,6 +113,39 @@ def label_clusters(
     return labels, "llm"
 
 
+def fallback_name(z: dict[str, float], value: str) -> str:
+    """Nombre de negocio a partir de los z-scores, para que sin LLM no quede "Cluster N"."""
+    if z.get("recency_days", 0) > 0.5:
+        return {"alto": "VIP en riesgo", "medio": "En riesgo de fuga"}.get(value, "Clientes inactivos")
+    if value == "alto":
+        return "Clientes VIP" if z.get("frequency", 0) > 0 else "Grandes compradores"
+    if z.get("frequency", 0) > 0.3:
+        return "Compradores frecuentes"
+    if z.get("tenure_days", 0) < -0.5:
+        # Antigüedad baja + frecuencia baja = compraron una vez y no volvieron.
+        return "Compradores de una vez" if z.get("frequency", 0) < -0.3 else "Clientes nuevos"
+    if z.get("top_category_share", 0) > 0.5:
+        return "Fieles a una categoría"
+    if z.get("frequency", 0) < -0.3 or value == "bajo":
+        return "Compradores ocasionales"
+    return "Clientes promedio"
+
+
+def _dedupe_names(labels: list[ClusterLabel]) -> None:
+    """Si dos clusters caen en el mismo nombre, los distingue con su primera etiqueta o un número."""
+    seen: dict[str, int] = {}
+    for label in labels:
+        base = label.name
+        seen[base] = seen.get(base, 0) + 1
+        if seen[base] == 1:
+            continue
+        tag = next((t for t in label.tags if t != "Perfil promedio"), None)
+        candidate = f"{base} · {tag}" if tag else f"{base} {seen[base]}"
+        if candidate in {other.name for other in labels if other is not label}:
+            candidate = f"{base} {seen[base]}"
+        label.name = candidate
+
+
 def fallback_label(profile: ClusterProfile) -> ClusterLabel:
     if profile.revenue_share is not None:
         ratio = profile.revenue_share / max(profile.share, 1e-9)
@@ -138,7 +172,7 @@ def fallback_label(profile: ClusterProfile) -> ClusterLabel:
     traits = profile.top_traits or ["sin rasgos marcados respecto al promedio"]
     return ClusterLabel(
         cluster_id=profile.cluster_id,
-        name=f"Cluster {profile.cluster_id + 1}",
+        name=fallback_name(z, value),
         description=f"{profile.size} clientes ({profile.share:.0%}). " + "; ".join(traits[:2]),
         persona="",
         tags=tags,

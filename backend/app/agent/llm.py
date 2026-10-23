@@ -73,7 +73,7 @@ class GeminiLLM:
     def __init__(self, settings: Settings):
         from google import genai
 
-        if settings.google_genai_use_vertexai:
+        if not settings.use_api_key:
             credentials = None
             if settings.google_application_credentials:
                 from google.oauth2 import service_account
